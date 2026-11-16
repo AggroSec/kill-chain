@@ -1,18 +1,21 @@
 /**
- * `npm run sim`: plays every class's starter Arsenal against every encounter
- * with every bot and prints a Markdown report.
+ * `npm run sim`: headless balance simulator. Prints a Markdown report.
+ *
+ * Modes:
+ *   (default)       full Act 1 runs per class per bot (default 2,000 runs)
+ *   --mode fights   single fights: each starter Arsenal vs every encounter
  *
  * Options:
- *   --fights N    fights per class x encounter x bot (default 300)
- *   --bot NAME    only run one bot (random | greedy | chain)
- *
- * Milestone 3 extends this to full runs (map, Loot, pick-to-win rates).
+ *   --runs N        runs per class per bot (run mode, default 2000)
+ *   --fights N      fights per class x encounter x bot (fight mode, default 300)
+ *   --bot NAME      only one bot (random | greedy | chain)
  */
 import { CLASS_LIST } from '../data/classes';
 import { CONTENT, starterFight } from '../data/content';
 import { ENCOUNTER_LIST } from '../data/encounters';
 import { BOTS } from './bots';
 import { runFights } from './fightSim';
+import { runReport } from './runReport';
 import type { FightStats } from './fightSim';
 
 function readFlag(args: readonly string[], name: string): string | undefined {
@@ -24,6 +27,23 @@ const pct = (n: number) => `${(n * 100).toFixed(0)}%`;
 const num = (n: number) => n.toFixed(1);
 
 export function main(args: readonly string[]): string {
+  if (readFlag(args, 'mode') === 'fights') return fightMain(args);
+  const runs = Number(readFlag(args, 'runs') ?? 2000);
+  if (!Number.isInteger(runs) || runs <= 0) throw new Error('--runs must be a positive integer');
+  const botFilter = readFlag(args, 'bot');
+  const { lines, warnings } = runReport(CONTENT, {
+    runs,
+    ...(botFilter !== undefined ? { botFilter } : {}),
+    classIds: CLASS_LIST.map((c) => c.id),
+    className: (id) => CLASS_LIST.find((c) => c.id === id)?.name ?? id,
+  });
+  lines.push('### Warnings', '');
+  lines.push(...(warnings.length > 0 ? warnings.map((w) => `- ${w}`) : ['- None']));
+  return lines.join('\n');
+}
+
+/** Fight mode: every class's starter Arsenal against every encounter. */
+function fightMain(args: readonly string[]): string {
   const fights = Number(readFlag(args, 'fights') ?? 300);
   const botFilter = readFlag(args, 'bot');
   const bots = BOTS.filter((bot) => botFilter === undefined || bot.name === botFilter);
