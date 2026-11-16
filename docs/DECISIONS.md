@@ -33,3 +33,37 @@ Judgment calls made during implementation, newest milestone last. Each entry: wh
 - **`src/data/terms.ts` created early** (Milestone 3 lists it) so the Milestone 1 debug UI doesn't hard-code themed words that would need hunting down later.
 - **Milestone 1 UI is a debug screen**, not the real phone UI (that's Milestone 4). Hand scrolls horizontally, cards auto-target the first living enemy, buttons are ≥44px tall.
 - **The UI picks fight seeds with `Math.random`** and shows the seed on screen. Only the engine must be deterministic, and showing the seed makes any reported bug replayable.
+
+## Milestone 2: Content system
+
+### Mechanics (★ = noticeable to players; flagged for AggroSec's review)
+- ★ **Chain rule: strictly later tactic = +1. The same or an earlier tactic breaks the Chain to 0.** "Same tactic keeps the Chain" was the alternative, but repeating Phishing would then never break anything. Strict ordering makes tactic variety a real deckbuilding goal. CLAUDE.md: "pick the option that makes card synergies more interesting".
+- ★ **Chain bonus is +2 per stack to every damage hit, and it applies to the card that extends the Chain.** "Boost later cards" reads naturally as including the card that just made the Chain. Rewarding the payoff card feels much better, and it makes finishers (Impact, Exfiltration) satisfying. Per hit rather than per card, so multi-hit cards synergize with Chain.
+- ★ **Alert levels: Quiet 0–4, Noisy 5–9, Detected 10–14, Lockdown 15–20.** Enemies get a flat +0/+1/+3/+5 per attack hit. Flat numbers are easy to read on a phone and make multi-hit enemies scarier at high Alert. The intent display always shows the final numbers.
+- ★ **Alert never decays on its own.** Only cards and enemies move it. Natural decay would make Social Engineer's Alert-lowering much less valuable, and quiet play should be a choice you build for.
+- **Noisy raises Alert after the card resolves**, so a loud card's own "If Quiet" check sees the Alert from before it was played.
+- ★ **Keywords: Burner (used once per fight), Stash (stays in hand) and Implant (a card type for lasting effects).** These are genre-standard, and Implants give the Patch Cycle elite ("destroys your persistence effects") something to destroy. "Burner" fits the theme (burner phone), and a rename is one line in `terms.ts` if it's confused with "Burned".
+- ★ **Exploit Dev's "setup" is Vuln stacks plus Exploit payoffs.** That gives "high damage cards that need setup" a concrete form that the EDR ("removes your debuffs on enemies") naturally counters.
+- ★ **Social Engineer's intent manipulation is Throttled (weaker attacks) and Stalled (skip an action).** Stall is powerful, so it's a 2-cost Burner.
+- **Honeypot's trigger fires once per card that damages it, even if the hit kills it.** Per hit would make multi-hit cards unusable against it. Firing on the killing blow keeps "don't touch the Honeypot" a real decision. Exploit with no Vuln deals no damage, so it doesn't count as an attack.
+- **Patch Cycle removes the oldest Implant first** (deterministic, and players can see it coming).
+- **Duration debuffs (Exposed, Throttled) tick down after the affected enemy acts.** Throttled 1 applied on your turn therefore weakens that enemy's next attack, which is what players expect.
+
+### Engine architecture
+- **Content types split into `contentTypes.ts`** (static data shapes) and `types.ts` (runtime state), to keep files focused and under 300 lines.
+- **Statuses are data with a few built-in rules.** Vuln, Exposed, Throttled, Stalled and Hardened have engine behavior keyed by id (`CORE_STATUS`). A content test checks that `src/data` defines them all. Implants are fully data-driven through `onTurnStart` effects, so new Implants need no code.
+- **Effects that need a target are detected automatically** (`effectsNeedTarget`), including inside "If Alert" conditions, so data authors can't forget to mark a card as targeted.
+- **Hand-written `cloneCombatState()` replaced `structuredClone`.** The simulator clones state thousands of times per second. A test verifies the clone is fully independent.
+- **Intent preview (`previewIntent`, `incomingDamage`) lives in the engine**, so the UI and bots read the same numbers and the UI never does game math.
+
+### Content
+- **Card lists are arrays, not objects keyed by id** (`byId()` builds lookups). Arrays read more naturally, and a content test rejects duplicate ids.
+- **Living off the Land and Fuzzing are Burner** so they can't loop forever in a trimmed Arsenal. The simulator now flags any turn with more than 30 card plays as a suspected infinite.
+- **Encounter swap: Firewall + SOC Analyst → Firewall + Honeypot.** The original pair cost about 36 OpSec, well above other normal fights (see BALANCE.md).
+- **Both classes start at 65 OpSec.** The sim shows the classes close without class-specific OpSec. The fragile class is the Insider (Milestone 5).
+
+### Simulator and tooling
+- **`npm run sim` exists now (fight-level) instead of waiting for Milestone 3.** CLAUDE.md asks for simulator balance numbers at every checkpoint, and fights need balancing before runs can be. Milestone 3 extends it to full runs.
+- **The sim runs through Vite's `runnerImport`** (`scripts/sim.mjs`), so TypeScript runs in Node with no new dependency such as tsx.
+- **Bots use 1-step lookahead through the real reducer.** They score each legal play by its resulting state instead of using hard-coded card logic, so new cards and effects work with the bots automatically.
+- **Replay links:** `?class=<id>&encounter=<id>&seed=<n>` starts an exact fight. Seeds shown on screen make any bug reproducible.
