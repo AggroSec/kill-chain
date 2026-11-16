@@ -13,7 +13,7 @@ import { Rng } from '../rng';
 import { pickEncounter, startMapFight, startRunCombat } from './fights';
 import { rollDarkWebStock, rollLoot, wipePrice } from './loot';
 import { generateMap, reachableNodeIds } from './map';
-import { applyRunEffects, gainTool, healOpsec, runEffectsNeedDeckIndex, upgradeCard, wipeCard } from './runEffects';
+import { applyRunEffects, canWipe, gainTool, healOpsec, runEffectsNeedDeckIndex, upgradeCard, wipeCard } from './runEffects';
 import type { NodeKind, RunAction, RunContent, RunPhase, RunState } from './runTypes';
 
 export function startRun(classId: string, seed: number, content: RunContent): RunState {
@@ -141,7 +141,7 @@ function applyAction(run: RunState, action: Exclude<RunAction, { type: 'COMBAT' 
       return true;
 
     case 'GO_DARK':
-      if (phase.kind !== 'safehouse' || !wipeCard(run, action.deckIndex)) return false;
+      if (phase.kind !== 'safehouse' || !wipeCard(run, action.deckIndex, content)) return false;
       run.phase = { kind: 'map' };
       return true;
 
@@ -166,12 +166,11 @@ function applyAction(run: RunState, action: Exclude<RunAction, { type: 'COMBAT' 
     }
 
     case 'BUY_WIPE': {
-      if (phase.kind !== 'darkWeb' || phase.wipeUsed) return false;
+      if (phase.kind !== 'darkWeb') return false;
       const price = wipePrice(run, content);
-      if (run.crypto < price || !wipeCard(run, action.deckIndex)) return false;
+      if (run.crypto < price || !wipeCard(run, action.deckIndex, content)) return false;
       run.crypto -= price;
       run.wipesBought++;
-      phase.wipeUsed = true;
       return true;
     }
 
@@ -204,7 +203,7 @@ function enterNode(run: RunState, kind: NodeKind, content: RunContent, rng: Rng)
     case 'safehouse':
       return { kind: 'safehouse' };
     case 'darkWeb':
-      return { kind: 'darkWeb', ...rollDarkWebStock(run, content, rng), wipeUsed: false };
+      return { kind: 'darkWeb', ...rollDarkWebStock(run, content, rng) };
   }
 }
 
@@ -231,7 +230,7 @@ function chooseEventOption(
   if (choice === undefined) return false;
   const cost = choice.cryptoCost ?? 0;
   if (run.crypto < cost) return false;
-  if (runEffectsNeedDeckIndex(choice.effects) && (deckIndex === undefined || run.deck[deckIndex] === undefined)) return false;
+  if (runEffectsNeedDeckIndex(choice.effects) && (deckIndex === undefined || !canWipe(run, deckIndex, content))) return false;
 
   run.crypto -= cost;
   const nextPhase = applyRunEffects(run, choice.effects, content, rng, deckIndex);

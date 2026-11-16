@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { act, inPhase, loseFight, RUN_TEST_CONTENT, winFight } from '../__fixtures__/runContent';
-import { startRun } from './run';
+import { runReducer, startRun } from './run';
 import type { NodeKind, RunState } from './runTypes';
 
 const content = RUN_TEST_CONTENT;
@@ -203,16 +203,32 @@ describe('Dark Web', () => {
     if (heartIndex !== -1) expect(next.maxOpsec).toBe(70);
   });
 
-  it('Wipe works once per visit and costs more each time this run', () => {
-    const run = atDarkWeb(500);
-    const wiped = act(run, { type: 'BUY_WIPE', deckIndex: 1 });
-    expect(wiped.deck).toEqual(['t-strike']);
-    expect(wiped.crypto).toBe(425);
-    expect(wiped.wipesBought).toBe(1);
-    expect(act(wiped, { type: 'BUY_WIPE', deckIndex: 0 })).toBe(wiped);
+  it('Wipe can be bought repeatedly, costing more each time this run', () => {
+    const run = { ...atDarkWeb(500), deck: ['t-strike', 'pub-a', 'pub-b'] };
+    const once = act(run, { type: 'BUY_WIPE', deckIndex: 1 });
+    expect(once.deck).toEqual(['t-strike', 'pub-b']);
+    expect(once.crypto).toBe(425);
+    const twice = act(once, { type: 'BUY_WIPE', deckIndex: 1 });
+    expect(twice.deck).toEqual(['t-strike']);
+    expect(twice.crypto).toBe(425 - 100);
+    expect(twice.wipesBought).toBe(2);
 
-    const nextVisit = inPhase(wiped, { kind: 'darkWeb', cards: [], tools: [], wipeUsed: false });
-    expect(act(nextVisit, { type: 'BUY_WIPE', deckIndex: 0 }).crypto).toBe(425 - 100);
+    const nextVisit = inPhase({ ...twice, deck: ['t-strike', 'pub-a'] }, { kind: 'darkWeb', cards: [], tools: [] });
+    expect(act(nextVisit, { type: 'BUY_WIPE', deckIndex: 0 }).crypto).toBe(325 - 125);
+  });
+
+  it('Wipe, Go Dark and event wipes respect the minimum Arsenal size', () => {
+    const strict = { ...content, config: { ...content.config, minArsenalSize: 2 } };
+    const base = { ...startRun('tester', 1, content), deck: ['t-strike', 'pub-a'] };
+    const shop = inPhase(base, { kind: 'darkWeb', cards: [], tools: [] });
+    const safehouse = inPhase(base, { kind: 'safehouse' });
+    const intel = inPhase(base, { kind: 'intel', eventId: 'shop-deal' });
+    expect(runReducer(shop, { type: 'BUY_WIPE', deckIndex: 0 }, strict)).toBe(shop);
+    expect(runReducer(safehouse, { type: 'GO_DARK', deckIndex: 0 }, strict)).toBe(safehouse);
+    expect(runReducer(intel, { type: 'EVENT_CHOICE', index: 1, deckIndex: 0 }, strict)).toBe(intel);
+    // One card over the minimum is fine.
+    const bigger = { ...shop, deck: ['t-strike', 'pub-a', 'pub-b'] };
+    expect(runReducer(bigger, { type: 'BUY_WIPE', deckIndex: 0 }, strict).deck).toHaveLength(2);
   });
 
   it('leaving returns to the map', () => {

@@ -36,6 +36,8 @@ export const TEST_CONFIG: RunConfig = {
   bannedKinds: [{ floor: 5, kinds: ['safehouse'] }],
   noBackToBack: ['safehouse', 'darkWeb'],
   easyFightCount: 2,
+  // Low so tests can use tiny decks; the min-size rule has its own test.
+  minArsenalSize: 1,
   startingCrypto: 100,
   loot: {
     fight: { rarityWeights: { public: 6, private: 3, 'zero-day': 1 }, crypto: [10, 20], cardChoices: 3, tool: false },

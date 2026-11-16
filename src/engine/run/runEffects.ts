@@ -18,9 +18,14 @@ export function loseOpsec(run: RunState, amount: number): void {
   if (run.opsec === 0) run.outcome = 'lost';
 }
 
-/** Remove the card at `deckIndex`. Returns false if there's no card there. */
-export function wipeCard(run: RunState, deckIndex: number): boolean {
-  if (deckIndex < 0 || deckIndex >= run.deck.length) return false;
+/** Can the card at `deckIndex` be removed? (It exists, and the Arsenal stays at the minimum size or more.) */
+export function canWipe(run: RunState, deckIndex: number, content: RunContent): boolean {
+  return run.deck[deckIndex] !== undefined && run.deck.length > content.config.minArsenalSize;
+}
+
+/** Remove the card at `deckIndex`. Returns false if that isn't allowed. */
+export function wipeCard(run: RunState, deckIndex: number, content: RunContent): boolean {
+  if (!canWipe(run, deckIndex, content)) return false;
   run.deck.splice(deckIndex, 1);
   return true;
 }
@@ -99,7 +104,7 @@ export function applyRunEffects(
         break;
       }
       case 'wipeChosenCard':
-        if (deckIndex !== undefined) wipeCard(run, deckIndex);
+        if (deckIndex !== undefined) wipeCard(run, deckIndex, content);
         break;
       case 'fight':
         nextPhase = startRunCombat(run, pickEncounter(run, effect.tier, content, rng), 'fight', content, rng);

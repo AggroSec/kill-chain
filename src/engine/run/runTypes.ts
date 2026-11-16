@@ -140,6 +140,8 @@ export interface RunConfig {
   noBackToBack: readonly RollableNodeKind[];
   /** The first N regular fights of a run use the easy encounter pool. */
   easyFightCount: number;
+  /** Wipe and Go Dark can't shrink the Arsenal below this many cards. */
+  minArsenalSize: number;
   startingCrypto: number;
   loot: Readonly<Record<'fight' | 'elite' | 'boss', LootTable>>;
   darkWeb: {
@@ -150,7 +152,7 @@ export interface RunConfig {
     /** One random card is sold at this fraction of its price (0.5 = half off). Use 1 for no sale. */
     saleMultiplier: number;
     wipeBasePrice: number;
-    /** Each Wipe bought this run raises the Wipe price by this much. */
+    /** Each Wipe bought this run raises the Wipe price by this much. No per-visit limit. */
     wipePriceStep: number;
   };
   safehouse: {
@@ -193,7 +195,7 @@ export type RunPhase =
   | { kind: 'loot'; loot: LootOffer }
   | { kind: 'intel'; eventId: string }
   | { kind: 'safehouse' }
-  | { kind: 'darkWeb'; cards: ShopItem[]; tools: ShopItem[]; wipeUsed: boolean };
+  | { kind: 'darkWeb'; cards: ShopItem[]; tools: ShopItem[] };
 
 export type RunOutcome = 'ongoing' | 'won' | 'lost';
 

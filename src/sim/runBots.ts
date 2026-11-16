@@ -114,7 +114,7 @@ function chooseSafehouse(run: RunState, content: RunContent, policy: RunPolicy, 
 /** One Dark Web purchase, or LEAVE when the bot is done shopping. */
 function chooseDarkWeb(run: RunState, content: RunContent, policy: RunPolicy, rng: Rng): RunAction {
   if (run.phase.kind !== 'darkWeb') return { type: 'LEAVE' };
-  const { cards, tools, wipeUsed } = run.phase;
+  const { cards, tools } = run.phase;
   const affordable = (price: number) => price <= run.crypto;
 
   const buys: RunAction[] = [];
@@ -125,7 +125,10 @@ function chooseDarkWeb(run: RunState, content: RunContent, policy: RunPolicy, rn
     if (!item.sold && affordable(item.price)) buys.push({ type: 'BUY_TOOL', index });
   });
   const wipe: RunAction = { type: 'BUY_WIPE', deckIndex: worstCardIndex(run, content) };
-  if (!wipeUsed && affordable(wipePrice(run, content))) buys.push(wipe);
+  // Wipes have no per-visit limit; the sensible bot only buys one while it costs at most half its Crypto.
+  const price = wipePrice(run, content);
+  const wipeOk = affordable(price) && (policy === 'random' || price <= run.crypto / 2);
+  if (wipeOk && runReducer(run, wipe, content) !== run) buys.push(wipe);
 
   if (policy === 'random') {
     return rng.next() < 0.5 ? (pick(buys, rng) ?? { type: 'LEAVE' }) : { type: 'LEAVE' };

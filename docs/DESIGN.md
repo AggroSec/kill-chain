@@ -90,3 +90,23 @@ Each class also has a pool of 8 cards to find as Loot (Milestone 3).
 | **Patch Cycle** | elite (Hardened Target) | Destroys your oldest Implant; gains Hardened |
 
 Encounter groups (easy, normal, elite) are in `src/data/encounters.ts`. The Act 1 boss (Incident Response Team) comes in Milestone 3.
+
+## Run loop (Milestone 3, decided by AggroSec)
+
+Exact numbers and content are pending in #6. These rules are settled:
+
+- **Map:** 12 floors × 4 lanes, then the boss. Each run's seed generates a new map: a new layout, new room placement and new encounters. The floor before the boss is all Safehouses. Your first 3 map fights come from the easy pool. Fights started by Intel events set their own difficulty and don't count toward those 3.
+- **OpSec carries over between fights with no automatic healing.** You recover at the Safehouse, through some events, and with some Tools.
+- **Loot:** pick 1 of 3 class cards (or skip), plus Crypto. Hardened Targets also drop a Tool.
+- **v2 upgrades are written by hand for each card.**
+- **Safehouse:** choose one option per visit.
+  - **Lay Low:** recover 35% of max OpSec.
+  - **Weaponize:** upgrade 1 card to v2.
+  - **Go Dark:** Wipe 1 card for free.
+  Balance is tracked in #4.
+- **Dark Web:** sells class cards, Tools and Wipes. You can Wipe as many times as you can afford, and each Wipe this run raises the price.
+- **Minimum Arsenal:** 5 cards. Wipe and Go Dark can't go below it.
+- **Intel nodes are always an event.**
+- **Act 1 boss:** the Incident Response Team, fought as a team of 3 enemies.
+- **A fight that hits the turn cap burns the run**, the same as losing it.
+- **Difficulty target:** the greedy bot wins Act 1 35–50% of the time (#5).
