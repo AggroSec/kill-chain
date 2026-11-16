@@ -1,0 +1,110 @@
+/**
+ * Run-level effects from Intel events and Tools (Crypto, OpSec, cards, Tools,
+ * fights). These mutate a run state the caller has already copied.
+ */
+import type { Rng } from '../rng';
+import { pickEncounter, startRunCombat } from './fights';
+import { rollCard, rollCardChoices, rollTool } from './loot';
+import { canUpgrade, upgradedId } from './upgrades';
+import type { RunContent, RunEffect, RunPhase, RunState } from './runTypes';
+
+export function healOpsec(run: RunState, amount: number): void {
+  run.opsec = Math.min(run.maxOpsec, run.opsec + amount);
+}
+
+/** Lose OpSec. At 0 the run is lost (Burned). */
+export function loseOpsec(run: RunState, amount: number): void {
+  run.opsec = Math.max(0, run.opsec - amount);
+  if (run.opsec === 0) run.outcome = 'lost';
+}
+
+/** Remove the card at `deckIndex`. Returns false if there's no card there. */
+export function wipeCard(run: RunState, deckIndex: number): boolean {
+  if (deckIndex < 0 || deckIndex >= run.deck.length) return false;
+  run.deck.splice(deckIndex, 1);
+  return true;
+}
+
+/** Upgrade the card at `deckIndex` to v2. Returns false if it can't be upgraded. */
+export function upgradeCard(run: RunState, deckIndex: number, content: RunContent): boolean {
+  const cardId = run.deck[deckIndex];
+  if (cardId === undefined || !canUpgrade(content.cards, cardId)) return false;
+  run.deck[deckIndex] = upgradedId(cardId);
+  return true;
+}
+
+/** Add a Tool and fire its pickup effects. */
+export function gainTool(run: RunState, toolId: string, content: RunContent, rng: Rng): void {
+  run.tools.push(toolId);
+  const onPickup = content.tools[toolId]?.onPickup;
+  if (onPickup !== undefined) applyRunEffects(run, onPickup, content, rng);
+}
+
+/**
+ * Does an effect list need the player to pick a card from their Arsenal?
+ * (The UI asks for a deck index first.)
+ */
+export function runEffectsNeedDeckIndex(effects: readonly RunEffect[]): boolean {
+  return effects.some((effect) => effect.kind === 'wipeChosenCard');
+}
+
+/**
+ * Applies effects in order. Returns the phase the run should move to
+ * (a fight or a card choice), or null to go back to the map.
+ * `deckIndex` is the card the player picked, for effects that need one.
+ */
+export function applyRunEffects(
+  run: RunState,
+  effects: readonly RunEffect[],
+  content: RunContent,
+  rng: Rng,
+  deckIndex?: number,
+): RunPhase | null {
+  let nextPhase: RunPhase | null = null;
+
+  for (const effect of effects) {
+    switch (effect.kind) {
+      case 'gainCrypto':
+        run.crypto += effect.amount;
+        break;
+      case 'loseOpsec':
+        loseOpsec(run, effect.amount);
+        break;
+      case 'healOpsec':
+        healOpsec(run, effect.amount);
+        break;
+      case 'gainMaxOpsec':
+        run.maxOpsec += effect.amount;
+        run.opsec += effect.amount;
+        break;
+      case 'gainRandomCard': {
+        const card = rollCard(content, run.classId, effect.rarity, rng);
+        if (card !== null) run.deck.push(card);
+        break;
+      }
+      case 'cardChoice': {
+        const choices = rollCardChoices(content, run.classId, content.config.loot.fight.rarityWeights, effect.count, rng);
+        nextPhase = { kind: 'loot', loot: { crypto: 0, toolId: null, cardChoices: choices } };
+        break;
+      }
+      case 'gainRandomTool': {
+        const toolId = rollTool(content, run.tools, rng);
+        if (toolId !== null) gainTool(run, toolId, content, rng);
+        break;
+      }
+      case 'upgradeRandomCard': {
+        const upgradable = run.deck.map((_, i) => i).filter((i) => canUpgrade(content.cards, run.deck[i] ?? ''));
+        const pick = upgradable[rng.nextInt(Math.max(upgradable.length, 1))];
+        if (pick !== undefined) upgradeCard(run, pick, content);
+        break;
+      }
+      case 'wipeChosenCard':
+        if (deckIndex !== undefined) wipeCard(run, deckIndex);
+        break;
+      case 'fight':
+        nextPhase = startRunCombat(run, pickEncounter(run, effect.tier, content, rng), 'fight', content, rng);
+        break;
+    }
+  }
+  return nextPhase;
+}

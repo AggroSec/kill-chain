@@ -67,3 +67,16 @@ Judgment calls made during implementation, newest milestone last. Each entry: wh
 - **The sim runs through Vite's `runnerImport`** (`scripts/sim.mjs`), so TypeScript runs in Node with no new dependency such as tsx.
 - **Bots use 1-step lookahead through the real reducer.** They score each legal play by its resulting state instead of using hard-coded card logic, so new cards and effects work with the bots automatically.
 - **Replay links:** `?class=<id>&encounter=<id>&seed=<n>` starts an exact fight. Seeds shown on screen make any bug reproducible.
+
+## Milestone 3: Run loop
+
+Design decisions for this milestone were made by AggroSec during planning (see the M3 planning issues #3–#6). Only implementation choices are logged here.
+
+### Engine architecture
+- **The run engine lives in `src/engine/run/`** and mirrors the combat engine: `startRun(classId, seed, content)` plus a pure `runReducer`. Invalid actions return the same state object.
+- **Combat actions take a fast path in the run reducer.** They only wrap the combat reducer, which already returns a new object, so the whole run (map included) isn't copied on every card play. Other run actions are rare and use `structuredClone`.
+- **Each fight gets its own seed from the run RNG.** A run seed decides the map, every encounter, all Loot and every fight's shuffles.
+- **v2 cards are separate registry entries ending in "+"** (e.g. `phishing+`), built from each card's `v2` data by `withUpgrades()`. The Arsenal stores ids, so an upgraded copy is just a different id. The combat engine, bots and UI treat a v2 like any other card, with no special cases.
+- **`EncounterDef` moved from `src/data` into the engine** (`run/runTypes.ts`), because the run engine picks encounters. The data file re-exports it.
+- **Run numbers live in a `RunConfig` passed in with the content**, not as engine constants. Map odds, Loot tables, prices and Lay Low % can then be tuned in `src/data` like the rest of the content, and tests use their own fixed config.
+- **Map generation draws non-crossing paths, then rolls node kinds.** Links only step to the same or a neighboring lane, so the map reads cleanly on a narrow screen. Tests check 200 seeds for reachability, no crossing links and the floor rules.

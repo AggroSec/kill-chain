@@ -10,3 +10,11 @@ export * from './types';
 export { Rng } from './rng';
 export { getMove } from './intents';
 export { livingEnemyIndexes } from './effects';
+
+// Run loop (map, Loot, Safehouse, Dark Web, Intel)
+export * from './run/runTypes';
+export { startRun, runReducer } from './run/run';
+export { generateMap, reachableNodeIds, BOSS_NODE_ID } from './run/map';
+export { withUpgrades, isUpgraded, baseCardId, canUpgrade, upgradedId } from './run/upgrades';
+export { wipePrice, classCardPool } from './run/loot';
+export { runEffectsNeedDeckIndex } from './run/runEffects';
