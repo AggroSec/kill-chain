@@ -1,6 +1,7 @@
 {
   "name": "kill-chain",
   "private": true,
+  "license": "PolyForm-Noncommercial-1.0.0",
   "version": "0.1.0",
   "type": "module",
   "description": "A cybersecurity-themed deckbuilder roguelite, playable in the browser.",
