@@ -5,6 +5,14 @@ import { BOTS, greedyBot, randomBot } from './bots';
 import { runFight, runFights, SUSPICIOUS_PLAYS_PER_TURN } from './fightSim';
 
 describe('fight simulator', () => {
+  it('lookahead bots chip through block instead of stalling (regression)', () => {
+    // Walls only ever block 8, so the first Strike each turn just strips block.
+    const setup = makeSetup({ deck: Array<string>(10).fill('strike'), enemies: ['wall', 'wall'] });
+    for (const bot of BOTS.filter((b) => b !== randomBot)) {
+      expect(runFights(setup, 10, bot, TEST_CONTENT).winRate, bot.name).toBe(1);
+    }
+  });
+
   it('every bot finishes fights', () => {
     for (const bot of BOTS) {
       const stats = runFights(makeSetup(), 20, bot, TEST_CONTENT);

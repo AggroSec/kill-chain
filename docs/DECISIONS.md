@@ -80,3 +80,8 @@ Design decisions for this milestone were made by AggroSec during planning (see t
 - **`EncounterDef` moved from `src/data` into the engine** (`run/runTypes.ts`), because the run engine picks encounters. The data file re-exports it.
 - **Run numbers live in a `RunConfig` passed in with the content**, not as engine constants. Map odds, Loot tables, prices and Lay Low % can then be tuned in `src/data` like the rest of the content, and tests use their own fixed config.
 - **Map generation draws non-crossing paths, then rolls node kinds.** Links only step to the same or a neighboring lane, so the map reads cleanly on a narrow screen. Tests check 200 seeds for reachability, no crossing links and the floor rules.
+
+### Simulator
+- **Run bots = a fight bot + a run-choice policy.** `random` pairs the random fight bot with random choices, which gives the least biased card pick-to-win signal. `greedy` and `chain` pair their fight bots with a `sensible` policy: heal when under half OpSec, avoid Hardened Targets when hurt, take the rarest card, buy Tools first, and trim the most-duplicated starter card. These are rough player stand-ins, not optimal play.
+- **Fight-bot fix: stripping enemy Block now counts in the score (at half value).** Before, a first hit that only removed Block looked worthless, so lookahead bots ended their turns forever against block-only enemies and hit the turn cap. A regression test covers it. M2 fight numbers moved by less than 2 OpSec.
+- **A run counts as "stuck" if a bot ever sends an invalid action**, so a bot bug shows up in the report instead of looping forever.
