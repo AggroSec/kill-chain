@@ -6,13 +6,16 @@
  * - random: picks any legal option. Gives the cleanest card pick-to-win signal,
  *   because its picks aren't biased by a heuristic.
  * - sensible: simple rules a reasonable player might follow (heal when low,
- *   avoid Hardened Targets when hurt, prefer rarer cards, trim starter cards).
+ *   avoid Hardened Targets when hurt, trim starter cards). It picks cards by
+ *   measured value (see cardValues.ts) when given values, else by rarity.
  *
  * Bots only send actions through runReducer. An action that returns the same
  * state was invalid, which bots use to test what's allowed.
  */
 import { canUpgrade, reachableNodeIds, runEffectsNeedDeckIndex, runReducer, wipePrice } from '../engine';
+import { baseCardId } from '../engine';
 import type { NodeKind, Rarity, Rng, RunAction, RunContent, RunState } from '../engine';
+import type { CardValues } from './cardValues';
 
 export type RunPolicy = 'random' | 'sensible';
 
@@ -29,6 +32,12 @@ function isValid(run: RunState, action: RunAction, content: RunContent): boolean
 function rarityOf(cardId: string, content: RunContent): number {
   const rarity = content.cards[cardId]?.rarity;
   return rarity === undefined ? 0 : RARITY_RANK[rarity];
+}
+
+/** How much the sensible bot wants a card: measured value if known, else rarity. */
+function cardScore(cardId: string, content: RunContent, values: CardValues | undefined): number {
+  if (values === undefined) return rarityOf(cardId, content);
+  return values.get(baseCardId(cardId)) ?? 0;
 }
 
 /** Index of the card the bot would most like to remove: a copy of its most common starter card. */
@@ -85,7 +94,7 @@ function chooseNode(run: RunState, policy: RunPolicy, rng: Rng): RunAction {
   return { type: 'CHOOSE_NODE', nodeId: scored[0]?.id ?? '' };
 }
 
-function chooseLoot(run: RunState, content: RunContent, policy: RunPolicy, rng: Rng): RunAction {
+function chooseLoot(run: RunState, content: RunContent, policy: RunPolicy, rng: Rng, values?: CardValues): RunAction {
   if (run.phase.kind !== 'loot') return { type: 'SKIP_LOOT' };
   const choices = run.phase.loot.cardChoices;
   if (choices.length === 0) return { type: 'SKIP_LOOT' };
@@ -95,8 +104,10 @@ function chooseLoot(run: RunState, content: RunContent, policy: RunPolicy, rng: 
   }
   let best = 0;
   choices.forEach((id, index) => {
-    if (rarityOf(id, content) > rarityOf(choices[best] ?? '', content)) best = index;
+    if (cardScore(id, content, values) > cardScore(choices[best] ?? '', content, values)) best = index;
   });
+  // With measured values, skip when every choice makes the Arsenal worse.
+  if (values !== undefined && cardScore(choices[best] ?? '', content, values) <= 0) return { type: 'SKIP_LOOT' };
   return { type: 'PICK_LOOT_CARD', index: best };
 }
 
@@ -112,7 +123,7 @@ function chooseSafehouse(run: RunState, content: RunContent, policy: RunPolicy, 
 }
 
 /** One Dark Web purchase, or LEAVE when the bot is done shopping. */
-function chooseDarkWeb(run: RunState, content: RunContent, policy: RunPolicy, rng: Rng): RunAction {
+function chooseDarkWeb(run: RunState, content: RunContent, policy: RunPolicy, rng: Rng, values?: CardValues): RunAction {
   if (run.phase.kind !== 'darkWeb') return { type: 'LEAVE' };
   const { cards, tools } = run.phase;
   const affordable = (price: number) => price <= run.crypto;
@@ -133,12 +144,15 @@ function chooseDarkWeb(run: RunState, content: RunContent, policy: RunPolicy, rn
   if (policy === 'random') {
     return rng.next() < 0.5 ? (pick(buys, rng) ?? { type: 'LEAVE' }) : { type: 'LEAVE' };
   }
-  // Sensible: Tools first, then trim a starter card, then the rarest affordable card.
+  // Sensible: Tools first, then trim a starter card, then the best affordable card.
   const tool = buys.find((a) => a.type === 'BUY_TOOL');
   if (tool !== undefined) return tool;
   if (buys.includes(wipe)) return wipe;
-  const cardBuys = buys.filter((a): a is Extract<RunAction, { type: 'BUY_CARD' }> => a.type === 'BUY_CARD');
-  cardBuys.sort((a, b) => rarityOf(cards[b.index]?.id ?? '', content) - rarityOf(cards[a.index]?.id ?? '', content));
+  const score = (a: Extract<RunAction, { type: 'BUY_CARD' }>) => cardScore(cards[a.index]?.id ?? '', content, values);
+  const cardBuys = buys
+    .filter((a): a is Extract<RunAction, { type: 'BUY_CARD' }> => a.type === 'BUY_CARD')
+    .filter((a) => values === undefined || score(a) > 0);
+  cardBuys.sort((a, b) => score(b) - score(a));
   return cardBuys[0] ?? { type: 'LEAVE' };
 }
 
@@ -165,17 +179,26 @@ function chooseEvent(run: RunState, content: RunContent, policy: RunPolicy, rng:
   return pick(options, rng) ?? { type: 'EVENT_CHOICE', index: 0 };
 }
 
-/** The bot's next action for any non-combat phase. */
-export function chooseRunAction(run: RunState, content: RunContent, policy: RunPolicy, rng: Rng): RunAction {
+/**
+ * The bot's next action for any non-combat phase.
+ * `values` (optional) lets the sensible policy pick cards by measured value.
+ */
+export function chooseRunAction(
+  run: RunState,
+  content: RunContent,
+  policy: RunPolicy,
+  rng: Rng,
+  values?: CardValues,
+): RunAction {
   switch (run.phase.kind) {
     case 'map':
       return chooseNode(run, policy, rng);
     case 'loot':
-      return chooseLoot(run, content, policy, rng);
+      return chooseLoot(run, content, policy, rng, values);
     case 'safehouse':
       return chooseSafehouse(run, content, policy, rng);
     case 'darkWeb':
-      return chooseDarkWeb(run, content, policy, rng);
+      return chooseDarkWeb(run, content, policy, rng, values);
     case 'intel':
       return chooseEvent(run, content, policy, rng);
     case 'combat':
