@@ -133,3 +133,150 @@ Fights per cell: 500. Starter Arsenal at full OpSec, Act 1 encounters.
 
 - None
 
+
+## Milestone 3: Full Act 1 runs
+
+Each run is a full Act 1: a seeded 12-floor map, then fights, Loot, Safehouses, the Dark Web, Intel and the Incident Response Team boss. Beating the boss counts as a win. The target, set by AggroSec in #5, is a **greedy-bot win rate of 35–50%**.
+
+### Tuning log
+
+AggroSec decided every change below.
+
+| Step | Change | Social Engineer (greedy) | Exploit Dev (greedy) |
+| --- | --- | --- | --- |
+| 1 | Numbers approved in #6 | 0% | 0% |
+| 2 | Fix B: boss −25% Integrity and −2 per hit, OpSec 75, Patch Cycle 64 | 36% | 4% |
+| 3 | **Bot fix:** pick Loot by measured card value instead of rarity (no game change) | 79% | 30% |
+| 4 | Setting M: boss ×0.85 of #6 (37/77/43) and −1 per hit, OpSec 70, Patch Cycle 72 | 42% | 2% |
+| 5 | Exploit Dev package: +1 Vuln, −1 Noisy, +1 Exploit per stack, OpSec 75 | 42% | 35% |
+
+Step 3 is a lesson worth keeping. The first run bot took the rarest card every time and never skipped. That stuffed Exploit Dev decks with loud 0-days that made runs *worse*, and it badly understated both classes. Fix B was chosen against that weak bot, so it was re-proposed once the bot was fixed.
+
+### Findings
+
+- **The boss is the main wall.** About 48% of Social Engineer runs end at the IR Team, which is expected for a final fight. Every other encounter ends 3% of runs or fewer.
+- **Exploit Dev was starved of Vuln.** Its starter deck has one Vuln source, so Exploit cards often had nothing to consume. +1 Vuln on every Vuln source was the strongest single fix (2% → 16%).
+- **Hit-all-enemies cards and the Honeypot.** Every all-enemy hit triggers the Honeypot (+2 Alert). Measured on starter decks, Email Collection (−11.7 OpSec per fight), Drive-by Compromise (−7.5) and the Web Shell Implant (−5.2) are net negatives. This works as designed (the Honeypot punishes attacks on it), but these cards are weak picks. Worth a look in playtests.
+- **Card pick-to-win outliers** (CLAUDE.md flags cards under 35% or over 65%): six cards land at 29–34%. That's close to the overall 35–40% win rate, so none are dramatic. None are over 65%.
+- **Turn caps:** 1–2 per 2,000 Social Engineer runs. No stuck runs and no suspected infinite combos.
+
+### Card values (OpSec saved per fight by adding one copy to the starter deck)
+
+The sensible bots use these values to pick cards. Measured before the Exploit Dev package (step 5). Rerun `measureCardValues` to refresh them.
+
+- **Social Engineer, best:** Supply Chain Compromise +4.3, Long Con +4.2, Watering Hole +4.1, Trusted Relationship +4.0.
+- **Social Engineer, worst:** Email Collection −11.7, Drive-by Compromise −7.5, Search Open Websites −2.4, Account Manipulation −2.0.
+- **Exploit Dev (before step 5):** only Stage Payload (+2.3), Process Injection, Impair Defenses and Scripting were positive. Data Destruction (−5.6) and Web Shell (−5.2) were the worst.
+
+### Full report
+
+`npm run sim` (2,000 runs per class per bot):
+
+Runs per class per bot: 2000. Act 1 only; beating the boss wins the run.
+
+#### Win rate
+
+| Bot | Class | Win | Avg floor reached | Turn caps | Stuck | Suspected infinites |
+| --- | --- | --- | --- | --- | --- | --- |
+| random | Social Engineer | 0% | 6.6 | 0 | 0 | 0 |
+| random | Exploit Dev | 0% | 7.0 | 0 | 0 | 0 |
+| greedy | Social Engineer | 40% | 12.5 | 1 | 0 | 0 |
+| greedy | Exploit Dev | 35% | 11.8 | 0 | 0 | 0 |
+| chain | Social Engineer | 39% | 12.6 | 2 | 0 | 0 |
+| chain | Exploit Dev | 35% | 11.7 | 0 | 0 | 0 |
+
+#### Social Engineer, greedy bot: what ends runs
+
+- Forensics Analyst + Incident Commander + Threat Hunter: 986 (49%)
+- Patch Cycle: 73 (4%)
+- Firewall + Honeypot: 44 (2%)
+- SOC Analyst + SOC Analyst: 43 (2%)
+- EDR + Honeypot: 28 (1%)
+- Honeypot + SOC Analyst: 17 (1%)
+- SOC Analyst: 2 (0%)
+- Firewall: 2 (0%)
+- EDR: 1 (0%)
+
+#### Social Engineer, greedy bot: card pick-to-win
+
+| Card | Runs with it | Win rate |
+| --- | --- | --- |
+| Trusted Relationship | 1641 | 42% |
+| Watering Hole | 1511 | 40% |
+| Long Con | 1346 | 40% |
+| Steal Web Session Cookie | 1147 | 50% |
+| MFA Fatigue | 960 | 31% |
+| Spearphishing | 944 | 45% |
+| Insider Contact | 828 | 46% |
+| Supply Chain Compromise | 579 | 53% |
+| Phishing for Info | 577 | 40% |
+| Valid Accounts | 509 | 41% |
+| Exfiltration Over Web Service | 481 | 49% |
+| Internal Spearphishing | 392 | 48% |
+| Help Desk Pretext | 199 | 29% |
+| Living off the Land | 108 | 31% |
+
+#### Social Engineer, greedy bot: Tools and Safehouse
+
+| Tool / choice | Runs | Win rate |
+| --- | --- | --- |
+| Ghost Persona | 475 | 46% |
+| VPN Subscription | 473 | 40% |
+| Dead Drop | 453 | 43% |
+| Proxy Chain | 453 | 40% |
+| Go Bag | 448 | 47% |
+| Cold Wallet | 445 | 36% |
+| USB Drop | 429 | 47% |
+| Burner Phone | 418 | 44% |
+| Safehouse: LAY_LOW | 1350 | 45% |
+| Safehouse: WEAPONIZE | 1127 | 45% |
+
+#### Exploit Dev, greedy bot: what ends runs
+
+- Forensics Analyst + Incident Commander + Threat Hunter: 747 (37%)
+- Firewall + Honeypot: 143 (7%)
+- Patch Cycle: 110 (6%)
+- EDR + Honeypot: 108 (5%)
+- SOC Analyst + SOC Analyst: 105 (5%)
+- Honeypot + SOC Analyst: 68 (3%)
+- Firewall: 16 (1%)
+- EDR: 5 (0%)
+- SOC Analyst: 3 (0%)
+
+#### Exploit Dev, greedy bot: card pick-to-win
+
+| Card | Runs with it | Win rate |
+| --- | --- | --- |
+| Stage Payload | 1555 | 39% |
+| Vulnerability Scanning | 1355 | 41% |
+| Fuzzing | 1274 | 36% |
+| Kernel Exploit | 1250 | 36% |
+| Exploitation for Credential Access | 1087 | 36% |
+| Exploitation for Privilege Escalation | 779 | 31% |
+| Escape to Host | 778 | 34% |
+| Scripting | 769 | 30% |
+| Impair Defenses | 649 | 35% |
+
+#### Exploit Dev, greedy bot: Tools and Safehouse
+
+| Tool / choice | Runs | Win rate |
+| --- | --- | --- |
+| VPN Subscription | 467 | 42% |
+| Ghost Persona | 439 | 42% |
+| Dead Drop | 427 | 41% |
+| Go Bag | 419 | 43% |
+| USB Drop | 413 | 45% |
+| Proxy Chain | 407 | 35% |
+| Cold Wallet | 400 | 34% |
+| Burner Phone | 382 | 37% |
+| Safehouse: LAY_LOW | 1351 | 46% |
+| Safehouse: WEAPONIZE | 839 | 48% |
+
+#### Warnings
+
+- greedy/social-engineer: mfa-fatigue pick-to-win 31% (below 35%)
+- greedy/social-engineer: help-desk-pretext pick-to-win 29% (below 35%)
+- greedy/social-engineer: living-off-the-land pick-to-win 31% (below 35%)
+- greedy/exploit-dev: exploitation-for-privilege-escalation pick-to-win 31% (below 35%)
+- greedy/exploit-dev: escape-to-host pick-to-win 34% (below 35%)
+- greedy/exploit-dev: scripting pick-to-win 30% (below 35%)
