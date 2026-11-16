@@ -60,6 +60,13 @@ const tools: ToolDef[] = [
   { id: 'big-heart', name: 'Big Heart', description: '+10 max OpSec', onPickup: [{ kind: 'gainMaxOpsec', amount: 10 }] },
   { id: 'wallet', name: 'Wallet', description: '+5 Crypto per win', afterCombatWin: [{ kind: 'gainCrypto', amount: 5 }] },
   { id: 'plain', name: 'Plain', description: 'Does nothing' },
+  {
+    id: 'kit',
+    name: 'Kit',
+    description: 'Fight bonuses',
+    combat: { noisyReduction: 1, firstTurnDraw: 1, combatStart: [{ kind: 'damage', amount: 3, target: 'allEnemies' }] },
+  },
+  { id: 'bag', name: 'Bag', description: 'Better Lay Low', layLowBonusPercent: 15 },
 ];
 
 const events: EventDef[] = [
@@ -73,6 +80,15 @@ const events: EventDef[] = [
       { label: 'Pick a card', effects: [{ kind: 'cardChoice', count: 3 }] },
       { label: 'Fight', effects: [{ kind: 'fight', tier: 'easy' }] },
       { label: 'Ouch', effects: [{ kind: 'loseOpsec', amount: 1000 }] },
+    ],
+  },
+  {
+    id: 'mirror',
+    title: 'Mirror',
+    text: '',
+    choices: [
+      { label: 'Trade up', effects: [{ kind: 'tradeUpChosenCard' }] },
+      { label: 'Get noticed', effects: [{ kind: 'heat', amount: 5 }] },
     ],
   },
   { id: 'gift', title: 'Gift', text: '', choices: [{ label: 'Take', effects: [{ kind: 'gainRandomTool' }, { kind: 'gainCrypto', amount: 5 }] }] },

@@ -30,7 +30,7 @@ function statusesInCardEffects(effects: readonly CardEffect[]): string[] {
 }
 
 function statusesInEnemyEffects(effects: readonly EnemyEffect[]): string[] {
-  return effects.flatMap((effect) => (effect.kind === 'buffSelf' ? [effect.status] : []));
+  return effects.flatMap((effect) => (effect.kind === 'buffSelf' || effect.kind === 'buffAllies' ? [effect.status] : []));
 }
 
 describe('ids', () => {

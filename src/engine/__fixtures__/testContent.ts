@@ -80,6 +80,8 @@ const enemyList: EnemyDef[] = [
   enemy('grower', 30, [
     { id: 'grow', name: 'Grow', effects: [{ kind: 'attack', damage: 2 }, { kind: 'buffSelf', status: 'hardened', stacks: 1 }], weight: 1 },
   ]),
+  // Buffs every other living enemy with 1 Hardened.
+  enemy('commander', 30, [{ id: 'rally', name: 'Rally', effects: [{ kind: 'buffAllies', status: 'hardened', stacks: 1 }], weight: 1 }]),
   enemy('honeypot', 30, [{ id: 'idle', name: 'Idle', effects: [{ kind: 'block', amount: 0 }], weight: 1 }], {
     onAttacked: [{ kind: 'raiseAlert', amount: 2 }],
   }),
@@ -167,6 +169,7 @@ export function stateWithHand(hand: string[], overrides: Partial<CombatSetup> = 
         timesInARow: 0,
       };
     }),
+    noisyReduction: 0,
     rngState: 12345,
   };
   return state;

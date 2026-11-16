@@ -51,6 +51,11 @@ export function resolveEnemyEffects(
       case 'buffSelf':
         addStacks(enemy.statuses, effect.status, effect.stacks);
         break;
+      case 'buffAllies':
+        state.enemies.forEach((ally, index) => {
+          if (index !== enemyIndex && isEnemyAlive(ally)) addStacks(ally.statuses, effect.status, effect.stacks);
+        });
+        break;
       case 'removeImplants':
         removeImplants(player.statuses, content, effect.count);
         break;

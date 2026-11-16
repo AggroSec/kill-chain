@@ -93,3 +93,14 @@ describe('intent preview', () => {
     expect(incomingDamage(state, TEST_CONTENT)).toBe(0);
   });
 });
+
+describe('buffAllies', () => {
+  it('buffs every other living enemy, not itself or the dead', () => {
+    const state = stateWithHand(['strike'], { enemies: ['commander', 'puncher', 'wall'] });
+    enemyAt(state, 2).integrity = 0;
+    const next = endTurn(state);
+    expect(enemyAt(next, 0).statuses.hardened).toBeUndefined();
+    expect(enemyAt(next, 1).statuses.hardened).toBe(1);
+    expect(enemyAt(next, 2).statuses.hardened).toBeUndefined();
+  });
+});

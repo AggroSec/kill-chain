@@ -21,7 +21,16 @@ import { chooseNextMove } from './intents';
 import { Rng } from './rng';
 import { CARDS_DRAWN_PER_TURN, TURN_CAP } from './rules';
 import { decayStatuses, getStatusDef } from './statuses';
-import type { CardDef, CardInstance, CombatAction, CombatSetup, CombatState, ContentRegistry, EnemyState } from './types';
+import type {
+  CardDef,
+  CardInstance,
+  CombatAction,
+  CombatModifiers,
+  CombatSetup,
+  CombatState,
+  ContentRegistry,
+  EnemyState,
+} from './types';
 
 export { getEnemyDef } from './enemyTurn';
 export { isEnemyAlive } from './effects';
@@ -68,10 +77,11 @@ export function startCombat(setup: CombatSetup, seed: number, content: ContentRe
     return enemy;
   });
 
+  const modifiers = setup.modifiers ?? {};
   const state: CombatState = {
     turn: 1,
     outcome: 'ongoing',
-    alert: 0,
+    alert: clampAlert(0, modifiers.startingAlert ?? 0),
     chain: emptyChain(),
     player: {
       opsec: setup.opsec,
@@ -86,10 +96,12 @@ export function startCombat(setup: CombatSetup, seed: number, content: ContentRe
       statuses: {},
     },
     enemies,
+    noisyReduction: modifiers.noisyReduction ?? 0,
     rngState: 0,
   };
 
   startPlayerTurn(state, rng, content);
+  applyFirstTurnModifiers(state, modifiers, rng, content);
   state.rngState = rng.state;
   return state;
 }
@@ -155,9 +167,9 @@ function playCard(state: CombatState, handIndex: number, targetIndex: number, co
   // 4. "When attacked" triggers (e.g. Honeypot), once per enemy this card damaged.
   fireOnAttacked(next, ctx.hitEnemies, content);
 
-  // 5. Noisy cards raise Alert after they land.
+  // 5. Noisy cards raise Alert after they land (less with Tools like Proxy Chain).
   if (def.keywords?.noisy !== undefined) {
-    next.alert = clampAlert(next.alert, def.keywords.noisy);
+    next.alert = clampAlert(next.alert, Math.max(0, def.keywords.noisy - next.noisyReduction));
   }
 
   // 6. Where the card goes: Implants and Burners are spent for the fight.
@@ -227,6 +239,18 @@ function startPlayerTurn(state: CombatState, rng: Rng, content: ContentRegistry)
   fireOnAttacked(state, ctx.hitEnemies, content);
 
   drawCards(player, CARDS_DRAWN_PER_TURN, rng);
+}
+
+/** Turn-1 bonuses from the run: extra draw and Cycles, then start-of-fight effects. */
+function applyFirstTurnModifiers(state: CombatState, modifiers: CombatModifiers, rng: Rng, content: ContentRegistry): void {
+  if (modifiers.firstTurnDraw !== undefined) drawCards(state.player, modifiers.firstTurnDraw, rng);
+  if (modifiers.firstTurnCycles !== undefined) state.player.cycles += modifiers.firstTurnCycles;
+  if (modifiers.combatStart !== undefined) {
+    const ctx: EffectContext = { state, rng, content, targetIndex: -1, hitEnemies: new Set() };
+    resolveCardEffects(ctx, modifiers.combatStart);
+    fireOnAttacked(state, ctx.hitEnemies, content);
+    checkForWin(state);
+  }
 }
 
 /**

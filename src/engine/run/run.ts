@@ -13,7 +13,7 @@ import { Rng } from '../rng';
 import { pickEncounter, startMapFight, startRunCombat } from './fights';
 import { rollDarkWebStock, rollLoot, wipePrice } from './loot';
 import { generateMap, reachableNodeIds } from './map';
-import { applyRunEffects, canWipe, gainTool, healOpsec, runEffectsNeedDeckIndex, upgradeCard, wipeCard } from './runEffects';
+import { applyRunEffects, deckIndexValidFor, gainTool, healOpsec, runEffectsNeedDeckIndex, upgradeCard, wipeCard } from './runEffects';
 import type { NodeKind, RunAction, RunContent, RunPhase, RunState } from './runTypes';
 
 export function startRun(classId: string, seed: number, content: RunContent): RunState {
@@ -33,6 +33,7 @@ export function startRun(classId: string, seed: number, content: RunContent): Ru
     map,
     currentNodeId: null,
     phase: { kind: 'map' },
+    heat: 0,
     fightsStarted: 0,
     seenEventIds: [],
     wipesBought: 0,
@@ -131,7 +132,7 @@ function applyAction(run: RunState, action: Exclude<RunAction, { type: 'COMBAT' 
 
     case 'LAY_LOW':
       if (phase.kind !== 'safehouse') return false;
-      healOpsec(run, Math.floor((run.maxOpsec * content.config.safehouse.layLowPercent) / 100));
+      healOpsec(run, layLowAmount(run, content));
       run.phase = { kind: 'map' };
       return true;
 
@@ -179,6 +180,12 @@ function applyAction(run: RunState, action: Exclude<RunAction, { type: 'COMBAT' 
       run.phase = { kind: 'map' };
       return true;
   }
+}
+
+/** OpSec recovered by Lay Low: the base percent plus any Tool bonuses, of max OpSec, rounded down. */
+export function layLowAmount(run: RunState, content: RunContent): number {
+  const bonus = run.tools.reduce((sum, id) => sum + (content.tools[id]?.layLowBonusPercent ?? 0), 0);
+  return Math.floor((run.maxOpsec * (content.config.safehouse.layLowPercent + bonus)) / 100);
 }
 
 function chooseNode(run: RunState, nodeId: string, content: RunContent, rng: Rng): boolean {
@@ -230,7 +237,7 @@ function chooseEventOption(
   if (choice === undefined) return false;
   const cost = choice.cryptoCost ?? 0;
   if (run.crypto < cost) return false;
-  if (runEffectsNeedDeckIndex(choice.effects) && (deckIndex === undefined || !canWipe(run, deckIndex, content))) return false;
+  if (runEffectsNeedDeckIndex(choice.effects) && !deckIndexValidFor(choice.effects, run, deckIndex, content)) return false;
 
   run.crypto -= cost;
   const nextPhase = applyRunEffects(run, choice.effects, content, rng, deckIndex);

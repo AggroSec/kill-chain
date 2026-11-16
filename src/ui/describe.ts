@@ -83,7 +83,7 @@ export function describeCard(card: CardDef, content: ContentRegistry): string {
 /** Short intent text, e.g. "Attack 12 + Alert +2". */
 export function describeIntent(effects: readonly EnemyEffect[], content: ContentRegistry): string {
   return effects
-    .map((effect) => {
+    .map((effect): string => {
       switch (effect.kind) {
         case 'attack':
           return effect.hits !== undefined && effect.hits > 1 ? `Attack ${effect.damage}x${effect.hits}` : `Attack ${effect.damage}`;
@@ -95,6 +95,8 @@ export function describeIntent(effects: readonly EnemyEffect[], content: Content
           return 'Cleanse debuffs';
         case 'buffSelf':
           return `+${effect.stacks} ${statusName(content, effect.status)}`;
+        case 'buffAllies':
+          return `Allies +${effect.stacks} ${statusName(content, effect.status)}`;
         case 'removeImplants':
           return `Destroy ${effect.count} ${KEYWORD_NAMES.implant}`;
       }

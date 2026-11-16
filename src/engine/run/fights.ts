@@ -5,7 +5,24 @@
 import { startCombat } from '../combat';
 import type { Rng } from '../rng';
 import { DEFAULT_MAX_CYCLES } from '../rules';
+import type { CardEffect, CombatModifiers } from '../types';
 import type { EncounterDef, RunContent, RunPhase, RunState } from './runTypes';
+
+/** Adds up every Tool's fight bonuses, plus Heat as starting Alert. */
+export function combatModifiers(run: RunState, content: RunContent): CombatModifiers {
+  const total = { startingAlert: run.heat, noisyReduction: 0, firstTurnDraw: 0, firstTurnCycles: 0 };
+  const combatStart: CardEffect[] = [];
+  for (const toolId of run.tools) {
+    const bonus = content.tools[toolId]?.combat;
+    if (bonus === undefined) continue;
+    total.startingAlert += bonus.startingAlert ?? 0;
+    total.noisyReduction += bonus.noisyReduction ?? 0;
+    total.firstTurnDraw += bonus.firstTurnDraw ?? 0;
+    total.firstTurnCycles += bonus.firstTurnCycles ?? 0;
+    combatStart.push(...(bonus.combatStart ?? []));
+  }
+  return { ...total, combatStart };
+}
 
 /** A random encounter of this tier for the run's current act. */
 export function pickEncounter(run: RunState, tier: EncounterDef['tier'], content: RunContent, rng: Rng): EncounterDef {
@@ -31,10 +48,12 @@ export function startRunCombat(
       maxOpsec: run.maxOpsec,
       maxCycles: DEFAULT_MAX_CYCLES,
       enemies: encounter.enemies,
+      modifiers: combatModifiers(run, content),
     },
     combatSeed,
     content,
   );
+  run.heat = 0; // Heat only lasts for one fight
   return { kind: 'combat', combat, encounterId: encounter.id, lootTable };
 }
 

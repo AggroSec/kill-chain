@@ -10,7 +10,7 @@
  *                    └─▶ darkWeb ──▶ map
  *   boss win ──▶ outcome "won" (Exfiltrated).  OpSec 0 ──▶ outcome "lost" (Burned).
  */
-import type { CombatAction, CombatState, ContentRegistry, Rarity } from '../types';
+import type { CombatAction, CombatModifiers, CombatState, ContentRegistry, Rarity } from '../types';
 
 // ---------------------------------------------------------------------------
 // Map
@@ -62,6 +62,10 @@ export type RunEffect =
   | { kind: 'upgradeRandomCard' }
   /** Remove the card the player picked (the choice must include a deck index). */
   | { kind: 'wipeChosenCard' }
+  /** Remove the picked card and gain a random class card one rarity higher. */
+  | { kind: 'tradeUpChosenCard' }
+  /** Add Heat: the next fight starts with this much more Alert. */
+  | { kind: 'heat'; amount: number }
   /** Start a fight from this encounter tier. Normal Loot follows a win. */
   | { kind: 'fight'; tier: 'easy' | 'normal' | 'elite' };
 
@@ -97,6 +101,10 @@ export interface ToolDef {
   onPickup?: readonly RunEffect[];
   /** Fires after every won fight, before Loot. */
   afterCombatWin?: readonly RunEffect[];
+  /** Bonuses in every fight while you hold this Tool (numbers add up across Tools). */
+  combat?: CombatModifiers;
+  /** Lay Low recovers this many extra percent of max OpSec. */
+  layLowBonusPercent?: number;
 }
 
 export interface EventChoice {
@@ -214,6 +222,8 @@ export interface RunState {
   /** The node the Operator is at, or null before choosing a floor-1 node. */
   currentNodeId: string | null;
   phase: RunPhase;
+  /** Heat: extra Alert the next fight starts with. Resets to 0 when that fight starts. */
+  heat: number;
   /** Regular fights started so far (for the easy-fight rule). */
   fightsStarted: number;
   /** Intel events already seen this run (they don't repeat until all are used). */

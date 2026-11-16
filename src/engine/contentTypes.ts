@@ -156,6 +156,8 @@ export type EnemyEffect =
   | { kind: 'cleanse' }
   /** Add stacks of a status to this enemy. */
   | { kind: 'buffSelf'; status: string; stacks: number }
+  /** Add stacks of a status to every OTHER living enemy (e.g. the Incident Commander). */
+  | { kind: 'buffAllies'; status: string; stacks: number }
   /** Destroy up to `count` of the Operator's Implants (oldest first). */
   | { kind: 'removeImplants'; count: number };
 

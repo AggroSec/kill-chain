@@ -5,8 +5,9 @@
 import type { Rng } from '../rng';
 import { pickEncounter, startRunCombat } from './fights';
 import { rollCard, rollCardChoices, rollTool } from './loot';
-import { canUpgrade, upgradedId } from './upgrades';
-import type { RunContent, RunEffect, RunPhase, RunState } from './runTypes';
+import { baseCardId, canUpgrade, upgradedId } from './upgrades';
+import type { Rarity } from '../types';
+import type { LootRarity, RunContent, RunEffect, RunPhase, RunState } from './runTypes';
 
 export function healOpsec(run: RunState, amount: number): void {
   run.opsec = Math.min(run.maxOpsec, run.opsec + amount);
@@ -50,7 +51,36 @@ export function gainTool(run: RunState, toolId: string, content: RunContent, rng
  * (The UI asks for a deck index first.)
  */
 export function runEffectsNeedDeckIndex(effects: readonly RunEffect[]): boolean {
-  return effects.some((effect) => effect.kind === 'wipeChosenCard');
+  return effects.some((effect) => effect.kind === 'wipeChosenCard' || effect.kind === 'tradeUpChosenCard');
+}
+
+/** Is `deckIndex` an acceptable pick for these effects? (Wipes also respect the minimum Arsenal size.) */
+export function deckIndexValidFor(
+  effects: readonly RunEffect[],
+  run: RunState,
+  deckIndex: number | undefined,
+  content: RunContent,
+): boolean {
+  if (deckIndex === undefined || run.deck[deckIndex] === undefined) return false;
+  if (effects.some((effect) => effect.kind === 'wipeChosenCard')) return canWipe(run, deckIndex, content);
+  return true;
+}
+
+const NEXT_RARITY: Readonly<Record<Rarity, LootRarity>> = {
+  starter: 'public',
+  public: 'private',
+  private: 'zero-day',
+  'zero-day': 'zero-day',
+};
+
+/** Swap the card at `deckIndex` for a random class card one rarity higher. */
+function tradeUpCard(run: RunState, deckIndex: number, content: RunContent, rng: Rng): void {
+  const cardId = run.deck[deckIndex];
+  if (cardId === undefined) return;
+  const rarity = content.cards[baseCardId(cardId)]?.rarity ?? 'starter';
+  const replacement = rollCard(content, run.classId, NEXT_RARITY[rarity], rng);
+  if (replacement === null) return;
+  run.deck.splice(deckIndex, 1, replacement);
 }
 
 /**
@@ -105,6 +135,12 @@ export function applyRunEffects(
       }
       case 'wipeChosenCard':
         if (deckIndex !== undefined) wipeCard(run, deckIndex, content);
+        break;
+      case 'tradeUpChosenCard':
+        if (deckIndex !== undefined) tradeUpCard(run, deckIndex, content, rng);
+        break;
+      case 'heat':
+        run.heat += effect.amount;
         break;
       case 'fight':
         nextPhase = startRunCombat(run, pickEncounter(run, effect.tier, content, rng), 'fight', content, rng);
