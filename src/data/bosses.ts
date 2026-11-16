@@ -12,7 +12,7 @@ export const BOSS_LIST: readonly EnemyDef[] = [
     id: 'forensics-analyst',
     name: 'Forensics Analyst',
     tier: 'boss',
-    maxIntegrity: 33,
+    maxIntegrity: 37,
     description: 'Incident Response Team. Destroys your Implants and cleanses debuffs from the team.',
     moves: [
       {
@@ -28,18 +28,18 @@ export const BOSS_LIST: readonly EnemyDef[] = [
       {
         id: 'memory-analysis',
         name: 'Memory Analysis',
-        effects: [{ kind: 'cleanse' }, { kind: 'attack', damage: 4 }],
+        effects: [{ kind: 'cleanse' }, { kind: 'attack', damage: 5 }],
         weight: 1,
         maxInARow: 1,
       },
-      { id: 'evidence-trail', name: 'Evidence Trail', effects: [{ kind: 'attack', damage: 7 }], weight: 2, maxInARow: 2 },
+      { id: 'evidence-trail', name: 'Evidence Trail', effects: [{ kind: 'attack', damage: 8 }], weight: 2, maxInARow: 2 },
     ],
   },
   {
     id: 'incident-commander',
     name: 'Incident Commander',
     tier: 'boss',
-    maxIntegrity: 68,
+    maxIntegrity: 77,
     description: 'Incident Response Team. Hardens the rest of the team and raises Alert.',
     moves: [
       {
@@ -59,18 +59,18 @@ export const BOSS_LIST: readonly EnemyDef[] = [
         weight: 1,
         maxInARow: 1,
       },
-      { id: 'command-strike', name: 'Command Strike', effects: [{ kind: 'attack', damage: 10 }], weight: 2, maxInARow: 2 },
+      { id: 'command-strike', name: 'Command Strike', effects: [{ kind: 'attack', damage: 11 }], weight: 2, maxInARow: 2 },
     ],
   },
   {
     id: 'threat-hunter',
     name: 'Threat Hunter',
     tier: 'boss',
-    maxIntegrity: 38,
+    maxIntegrity: 43,
     description: 'Incident Response Team. Multi-hit attacks: the Alert bonus applies to every hit.',
     moves: [
-      { id: 'hunt', name: 'Hunt', effects: [{ kind: 'attack', damage: 5 }], weight: 2, maxInARow: 2 },
-      { id: 'pursuit', name: 'Pursuit', effects: [{ kind: 'attack', damage: 2, hits: 3 }], weight: 2, maxInARow: 1 },
+      { id: 'hunt', name: 'Hunt', effects: [{ kind: 'attack', damage: 6 }], weight: 2, maxInARow: 2 },
+      { id: 'pursuit', name: 'Pursuit', effects: [{ kind: 'attack', damage: 3, hits: 3 }], weight: 2, maxInARow: 1 },
       {
         id: 'track',
         name: 'Track',

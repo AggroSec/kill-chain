@@ -20,7 +20,7 @@ export const CLASS_LIST: readonly ClassDef[] = [
     id: 'social-engineer',
     name: 'Social Engineer',
     tagline: 'Talk your way in. Weaken and stall defenders, and keep Alert low.',
-    maxOpsec: 75,
+    maxOpsec: 70,
     starterDeck: [...copies('phishing', 4), ...copies('masquerade', 4), 'pretexting', 'impersonation'],
   },
   {

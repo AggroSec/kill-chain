@@ -108,7 +108,7 @@ export const ENEMY_LIST: readonly EnemyDef[] = [
     id: 'patch-cycle',
     name: 'Patch Cycle',
     tier: 'elite',
-    maxIntegrity: 64,
+    maxIntegrity: 72,
     description: 'Hardened Target. Destroys your Implants and grows stronger every update.',
     moves: [
       {
