@@ -20,7 +20,9 @@ describe('run simulator', () => {
   });
 
   it('aggregates win rate, cards, Tools and Safehouse choices', () => {
-    const bot = RUN_BOTS[1];
+    // The random bot: it takes cards, while the sensible bot correctly skips
+    // the fixture's deliberately weak pool cards.
+    const bot = RUN_BOTS[0];
     if (bot === undefined) throw new Error('missing bot');
     const stats = runRuns('tester', 40, bot, RUN_TEST_CONTENT);
     expect(stats.runs).toBe(40);
@@ -33,5 +35,11 @@ describe('run simulator', () => {
       expect(count.wins).toBeLessThanOrEqual(count.runs);
     }
     expect(stats.safehouse.size).toBeGreaterThan(0);
+  });
+
+  it('the sensible bot skips cards that measure as harmful', () => {
+    const bot = RUN_BOTS[1];
+    if (bot === undefined) throw new Error('missing bot');
+    expect(runRuns('tester', 20, bot, RUN_TEST_CONTENT).cards.size).toBe(0);
   });
 });
