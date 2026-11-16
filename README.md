@@ -8,7 +8,7 @@ Built touch-first for phones, playable on desktop too.
 
 ## Play
 
-Once deployed, the game lives at **https://aggrosec.github.io/kill-chain/**.
+The game lives at **https://aggrosec.github.io/kill-chain/**. It's a work in progress, so expect debug screens until Milestone 4.
 
 ## Develop
 
@@ -57,3 +57,11 @@ AggroSec set the game's design, priorities and milestones, and reviewed and merg
 - Third-party assets are credited in [`src/assets/ATTRIBUTION.md`](src/assets/ATTRIBUTION.md).
 
 Card text describes game effects only. The game contains no real commands, exploit code or attack instructions.
+
+## License
+
+Kill Chain is **free to play, study, modify and share for noncommercial purposes** under the [PolyForm Noncommercial License 1.0.0](LICENSE.md). Personal use, hobby projects, research, education, charities and public institutions are all fine.
+
+**Commercial use is not covered.** That includes selling the game or a modified version, putting it behind a paywall, or using it in a paid product or service. If you'd like to use it commercially, reach out to [AggroSec](https://github.com/AggroSec) first, for example by opening an issue, to work out a commercial license.
+
+The license covers this project's own code and content. MITRE ATT&CK® and third-party assets stay under their own terms (see Credits).
