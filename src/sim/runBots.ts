@@ -148,18 +148,21 @@ function chooseEvent(run: RunState, content: RunContent, policy: RunPolicy, rng:
   const deckIndex = worstCardIndex(run, content);
 
   const valid: RunAction[] = [];
+  const preferred: RunAction[] = [];
   event?.choices.forEach((choice, index) => {
     const action: RunAction = runEffectsNeedDeckIndex(choice.effects)
       ? { type: 'EVENT_CHOICE', index, deckIndex }
       : { type: 'EVENT_CHOICE', index };
     if (!isValid(run, action, content)) return;
-    // Sensible: never take an OpSec hit that would leave you under half.
-    const opsecCost = choice.effects.reduce((sum, e) => (e.kind === 'loseOpsec' ? sum + e.amount : sum), 0);
-    if (policy === 'sensible' && run.opsec - opsecCost < run.maxOpsec / 2) return;
     valid.push(action);
+    // Sensible: avoid OpSec hits that would leave you under half (when there's another option).
+    const opsecCost = choice.effects.reduce((sum, e) => (e.kind === 'loseOpsec' ? sum + e.amount : sum), 0);
+    if (opsecCost > 0 && run.opsec - opsecCost < run.maxOpsec / 2) return;
+    preferred.push(action);
   });
-  // Every event should have a free "walk away" choice; fall back to the first one just in case.
-  return pick(valid, rng) ?? { type: 'EVENT_CHOICE', index: 0 };
+  const options = policy === 'sensible' && preferred.length > 0 ? preferred : valid;
+  // Events always have at least one valid choice (content tests check this); index 0 is a last resort.
+  return pick(options, rng) ?? { type: 'EVENT_CHOICE', index: 0 };
 }
 
 /** The bot's next action for any non-combat phase. */
