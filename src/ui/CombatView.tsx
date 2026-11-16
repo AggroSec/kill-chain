@@ -1,11 +1,14 @@
 /**
- * Bare-bones combat screen. It only renders engine state and sends actions;
+ * Debug combat screen. It only renders engine state and sends actions;
  * all rules live in src/engine.
  */
-import { getCardDef, getEnemyDef, getMove, isEnemyAlive, whyCantPlay } from '../engine';
+import { useState } from 'react';
+import { getAlertLevel, isEnemyAlive, livingEnemyIndexes, whyCantPlay } from '../engine';
 import type { CombatAction, CombatState, ContentRegistry } from '../engine';
-import { TERMS } from '../data/terms';
-import { describeCardEffects, describeIntent } from './describe';
+import { ALERT_LEVEL_NAMES, TERMS } from '../data/terms';
+import { EnemyPanel } from './EnemyPanel';
+import { HandCard } from './HandCard';
+import { StatusChips } from './StatusChips';
 
 interface CombatViewProps {
   state: CombatState;
@@ -23,8 +26,11 @@ const OUTCOME_LABEL = {
 
 export function CombatView({ state, seed, content, onAction, onNewFight }: CombatViewProps) {
   const { player } = state;
-  // Milestone 1 has one enemy, so cards target the first one still standing.
-  const targetIndex = Math.max(0, state.enemies.findIndex(isEnemyAlive));
+  const [selectedTarget, setSelectedTarget] = useState(0);
+  // If the selected enemy is gone, fall back to the first one still standing.
+  const selected = state.enemies[selectedTarget];
+  const targetIndex = selected !== undefined && isEnemyAlive(selected) ? selectedTarget : (livingEnemyIndexes(state)[0] ?? 0);
+  const alertLevel = getAlertLevel(state.alert);
 
   return (
     <main className="combat">
@@ -35,25 +41,26 @@ export function CombatView({ state, seed, content, onAction, onNewFight }: Comba
         </span>
       </header>
 
+      <div className="meters">
+        <span className={`alert alert-${alertLevel.id}`}>
+          {TERMS.alert} {state.alert} · {ALERT_LEVEL_NAMES[alertLevel.id]}
+        </span>
+        <span className="chain">
+          {TERMS.chain} {state.chain.count}
+        </span>
+      </div>
+
       <section className="enemies">
-        {state.enemies.map((enemy) => {
-          const def = getEnemyDef(content, enemy.defId);
-          const intent = getMove(def, enemy.intentMoveId);
-          return (
-            <div key={enemy.uid} className={isEnemyAlive(enemy) ? 'enemy' : 'enemy defeated'}>
-              <h2>{def.name}</h2>
-              <div>
-                {TERMS.integrity} {enemy.integrity}/{enemy.maxIntegrity}
-                {enemy.block > 0 && ` · ${TERMS.block} ${enemy.block}`}
-              </div>
-              {isEnemyAlive(enemy) && state.outcome === 'ongoing' && (
-                <div className="intent">
-                  {TERMS.intent}: {intent.name} ({describeIntent(intent.effects)})
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {state.enemies.map((enemy, index) => (
+          <EnemyPanel
+            key={enemy.uid}
+            state={state}
+            index={index}
+            content={content}
+            isTarget={index === targetIndex && state.enemies.length > 1}
+            onSelect={() => setSelectedTarget(index)}
+          />
+        ))}
       </section>
 
       {state.outcome !== 'ongoing' ? (
@@ -65,23 +72,16 @@ export function CombatView({ state, seed, content, onAction, onNewFight }: Comba
         </section>
       ) : (
         <section className="hand" aria-label="Hand">
-          {player.hand.map((card, handIndex) => {
-            const def = getCardDef(content, card.defId);
-            const playable = whyCantPlay(state, handIndex, targetIndex, content) === null;
-            return (
-              <button
-                key={card.uid}
-                type="button"
-                className={`card card-${def.type}`}
-                disabled={!playable}
-                onClick={() => onAction({ type: 'PLAY_CARD', handIndex, targetIndex })}
-              >
-                <span className="card-cost">{def.cost}</span>
-                <span className="card-name">{def.name}</span>
-                <span className="card-text">{describeCardEffects(def.effects)}</span>
-              </button>
-            );
-          })}
+          {player.hand.map((card, handIndex) => (
+            <HandCard
+              key={card.uid}
+              card={card}
+              state={state}
+              content={content}
+              playable={whyCantPlay(state, handIndex, targetIndex, content) === null}
+              onPlay={() => onAction({ type: 'PLAY_CARD', handIndex, targetIndex })}
+            />
+          ))}
         </section>
       )}
 
@@ -97,12 +97,16 @@ export function CombatView({ state, seed, content, onAction, onNewFight }: Comba
             {TERMS.cycles} {player.cycles}/{player.maxCycles}
           </span>
         </div>
+        <StatusChips statuses={player.statuses} content={content} />
         <div className="stats muted">
           <span>
             {TERMS.drawPile} {player.drawPile.length}
           </span>
           <span>
             {TERMS.discardPile} {player.discardPile.length}
+          </span>
+          <span>
+            {TERMS.spentPile} {player.spentPile.length}
           </span>
           <span>
             {TERMS.seed} {seed}

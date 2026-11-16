@@ -7,7 +7,7 @@ import type { EnemyDef, EnemyState } from './types';
 const alternator = TEST_CONTENT.enemies.alternator as EnemyDef;
 
 function freshEnemy(): EnemyState {
-  return { uid: 1, defId: 'alternator', integrity: 20, maxIntegrity: 20, block: 0, intentMoveId: '', lastMoveId: null, timesInARow: 0 };
+  return { uid: 1, defId: 'alternator', integrity: 20, maxIntegrity: 20, block: 0, statuses: {}, intentMoveId: '', lastMoveId: null, timesInARow: 0 };
 }
 
 describe('enemy intents', () => {

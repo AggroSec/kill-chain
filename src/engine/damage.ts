@@ -1,6 +1,10 @@
 /**
  * Damage and block math, shared by the Operator and enemies.
  */
+import { getAlertLevel } from './alert';
+import { CHAIN_DAMAGE_PER_STACK, EXPOSED_DAMAGE_MULTIPLIER, THROTTLED_DAMAGE_MULTIPLIER } from './rules';
+import { CORE_STATUS, getStacks } from './statuses';
+import type { Statuses } from './types';
 
 export interface BlockResult {
   /** Block left after absorbing the hit. */
@@ -20,4 +24,28 @@ export function absorbWithBlock(block: number, damage: number): BlockResult {
     blockLeft: block - absorbed,
     damageThrough: safeDamage - absorbed,
   };
+}
+
+/**
+ * Damage of one Operator hit on an enemy, before block.
+ * Order: base + Chain bonus, then Exposed multiplier (rounded down).
+ */
+export function operatorHitDamage(base: number, chainCount: number, bonusPerChain: number, target: Statuses): number {
+  let damage = base + chainCount * (CHAIN_DAMAGE_PER_STACK + bonusPerChain);
+  if (getStacks(target, CORE_STATUS.exposed) > 0) {
+    damage = Math.floor(damage * EXPOSED_DAMAGE_MULTIPLIER);
+  }
+  return Math.max(0, damage);
+}
+
+/**
+ * Damage of one enemy hit on the Operator, before block.
+ * Order: base + Hardened + Alert bonus, then Throttled multiplier (rounded down).
+ */
+export function enemyHitDamage(base: number, attacker: Statuses, alert: number): number {
+  let damage = base + getStacks(attacker, CORE_STATUS.hardened) + getAlertLevel(alert).enemyDamageBonus;
+  if (getStacks(attacker, CORE_STATUS.throttled) > 0) {
+    damage = Math.floor(damage * THROTTLED_DAMAGE_MULTIPLIER);
+  }
+  return Math.max(0, damage);
 }
