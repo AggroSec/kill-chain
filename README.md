@@ -10,6 +10,8 @@ Built touch-first for phones, playable on desktop too.
 
 The game lives at **https://aggrosec.github.io/kill-chain/**. It's a work in progress, so expect debug screens until Milestone 4.
 
+**Found a bug or want a run looked at?** Open Menu → Run Logs (or scroll down on the Burned/Exfiltrated screen), then tap Copy Log or Report on GitHub. A run log is your seed plus every move you made, so the run can be replayed exactly.
+
 ## Develop
 
 Requires Node.js (current LTS).
@@ -19,6 +21,7 @@ npm install
 npm run dev     # dev server at http://localhost:5173/kill-chain/
 npm run test    # unit tests (Vitest)
 npm run sim     # headless balance simulator (add -- --fights 1000 for more)
+npm run replay -- log.txt   # replay a run log turn by turn
 npm run check   # typecheck + lint + tests (must pass before every commit)
 npm run build   # production build into dist/
 ```

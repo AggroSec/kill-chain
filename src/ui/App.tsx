@@ -12,8 +12,9 @@ import { ENCOUNTER_LIST } from '../data/encounters';
 import { CombatView } from './CombatView';
 import { FightSetup } from './FightSetup';
 import { MainMenu } from './MainMenu';
+import { RunLogsScreen, runLabel } from './RunLogsScreen';
 import { RunView } from './run/RunView';
-import { clearRun, loadRun, saveRun } from './storage';
+import { archiveLog, clearRun, loadRun, runLogText, saveRun } from './storage';
 import type { SavedRun } from './storage';
 
 /**
@@ -32,6 +33,7 @@ interface Fight {
 type Screen =
   | { kind: 'menu' }
   | { kind: 'practiceSetup' }
+  | { kind: 'runLogs' }
   | { kind: 'practice'; fight: Fight }
   | { kind: 'run'; saved: SavedRun };
 
@@ -50,7 +52,7 @@ function screenFromUrl(): Screen {
     if (classId === null || CLASSES[classId] === undefined || !Number.isInteger(seed) || params.get('seed') === null) {
       return { kind: 'menu' };
     }
-    if (encounterId === null) return { kind: 'run', saved: { seed, run: startRun(classId, seed, CONTENT) } };
+    if (encounterId === null) return { kind: 'run', saved: { seed, run: startRun(classId, seed, CONTENT), actions: [] } };
     if (ENCOUNTERS[encounterId] === undefined) return { kind: 'menu' };
     return { kind: 'practice', fight: { seed, state: startCombat(starterFight(classId, encounterId), seed, CONTENT) } };
   } catch {
@@ -72,15 +74,20 @@ export function App() {
   }
 
   function newRun() {
+    // Keep the old run's log (finished or abandoned) for bug reports before replacing it.
+    if (savedRun !== null) archiveLog({ label: runLabel(savedRun), text: runLogText(savedRun) });
     clearRun();
     const seed = randomSeed();
-    showRun({ seed, run: startRun(classId, seed, CONTENT) });
+    showRun({ seed, run: startRun(classId, seed, CONTENT), actions: [] });
   }
 
   function runAction(action: RunAction) {
     if (screen.kind !== 'run') return;
-    const next = runReducer(screen.saved.run, action, CONTENT);
-    if (next !== screen.saved.run) showRun({ seed: screen.saved.seed, run: next });
+    const { seed, run, actions } = screen.saved;
+    const next = runReducer(run, action, CONTENT);
+    if (next === run) return;
+    // Record only accepted actions; old saves without a list stay without one.
+    showRun({ seed, run: next, ...(actions !== undefined ? { actions: [...actions, action] } : {}) });
   }
 
   function practiceAction(action: CombatAction) {
@@ -99,9 +106,12 @@ export function App() {
           onStartRun={newRun}
           {...(canContinue ? { onContinue: () => setScreen({ kind: 'run', saved: savedRun }) } : {})}
           onPractice={() => setScreen({ kind: 'practiceSetup' })}
+          onRunLogs={() => setScreen({ kind: 'runLogs' })}
         />
       );
     }
+    case 'runLogs':
+      return <RunLogsScreen current={savedRun} onBack={() => setScreen({ kind: 'menu' })} />;
     case 'practiceSetup':
       return (
         <FightSetup
@@ -134,6 +144,7 @@ export function App() {
           onAction={runAction}
           onMenu={() => setScreen({ kind: 'menu' })}
           onNewRun={() => setScreen({ kind: 'menu' })}
+          log={{ label: runLabel(screen.saved), text: runLogText(screen.saved) }}
         />
       );
   }

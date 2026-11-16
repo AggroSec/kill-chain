@@ -1,4 +1,4 @@
-/** Start screen: pick a class and start a run, continue a saved run, or practice a single fight. */
+/** Start screen: pick a class and start a run, continue a saved run, practice a single fight, or get run logs. */
 import { CLASS_LIST } from '../data/classes';
 import { TERMS } from '../data/terms';
 
@@ -9,9 +9,10 @@ interface MainMenuProps {
   /** Present when a saved run can be continued. */
   onContinue?: () => void;
   onPractice: () => void;
+  onRunLogs: () => void;
 }
 
-export function MainMenu({ classId, onClassChange, onStartRun, onContinue, onPractice }: MainMenuProps) {
+export function MainMenu({ classId, onClassChange, onStartRun, onContinue, onPractice, onRunLogs }: MainMenuProps) {
   return (
     <main className="combat setup">
       <h1>{TERMS.gameTitle}</h1>
@@ -38,6 +39,9 @@ export function MainMenu({ classId, onClassChange, onStartRun, onContinue, onPra
       </button>
       <button type="button" className="secondary" onClick={onPractice}>
         {TERMS.practiceFight}
+      </button>
+      <button type="button" className="secondary" onClick={onRunLogs}>
+        {TERMS.runLogs}
       </button>
     </main>
   );
