@@ -49,6 +49,22 @@ export const TERMS = {
   layLow: 'Lay Low',
   weaponize: 'Weaponize',
   goDark: 'Go Dark',
+  heat: 'Heat',
+  startRun: 'Start Run',
+  continueRun: 'Continue Run',
+  abandonRun: 'Abandon Run',
+  newRun: 'New Run',
+  practiceFight: 'Practice Fight',
+  mainMenu: 'Menu',
+  pickCard: 'Pick a card',
+  sold: 'Sold',
+  cancel: 'Cancel',
+  close: 'Close',
+  done: 'Done',
+  free: 'Free',
+  minArsenal: 'Your Arsenal is at its minimum size.',
+  noUpgrades: 'No cards can be upgraded.',
+  chooseNext: 'Choose your next target',
 } as const;
 
 /** Names for each kind of map node. */
