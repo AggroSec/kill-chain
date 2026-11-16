@@ -67,3 +67,29 @@ Judgment calls made during implementation, newest milestone last. Each entry: wh
 - **The sim runs through Vite's `runnerImport`** (`scripts/sim.mjs`), so TypeScript runs in Node with no new dependency such as tsx.
 - **Bots use 1-step lookahead through the real reducer.** They score each legal play by its resulting state instead of using hard-coded card logic, so new cards and effects work with the bots automatically.
 - **Replay links:** `?class=<id>&encounter=<id>&seed=<n>` starts an exact fight. Seeds shown on screen make any bug reproducible.
+
+## Milestone 3: Run loop
+
+Design decisions for this milestone were made by AggroSec during planning (see the M3 planning issues #3–#6). Only implementation choices are logged here.
+
+### Engine architecture
+- **The run engine lives in `src/engine/run/`** and mirrors the combat engine: `startRun(classId, seed, content)` plus a pure `runReducer`. Invalid actions return the same state object.
+- **Combat actions take a fast path in the run reducer.** They only wrap the combat reducer, which already returns a new object, so the whole run (map included) isn't copied on every card play. Other run actions are rare and use `structuredClone`.
+- **Each fight gets its own seed from the run RNG.** A run seed decides the map, every encounter, all Loot and every fight's shuffles.
+- **v2 cards are separate registry entries ending in "+"** (e.g. `phishing+`), built from each card's `v2` data by `withUpgrades()`. The Arsenal stores ids, so an upgraded copy is just a different id. The combat engine, bots and UI treat a v2 like any other card, with no special cases.
+- **`EncounterDef` moved from `src/data` into the engine** (`run/runTypes.ts`), because the run engine picks encounters. The data file re-exports it.
+- **Run numbers live in a `RunConfig` passed in with the content**, not as engine constants. Map odds, Loot tables, prices and Lay Low % can then be tuned in `src/data` like the rest of the content, and tests use their own fixed config.
+- **Map generation draws non-crossing paths, then rolls node kinds.** Links only step to the same or a neighboring lane, so the map reads cleanly on a narrow screen. Tests check 200 seeds for reachability, no crossing links and the floor rules.
+
+### Simulator
+- **Run bots = a fight bot + a run-choice policy.** `random` pairs the random fight bot with random choices, which gives the least biased card pick-to-win signal. `greedy` and `chain` pair their fight bots with a `sensible` policy: heal when under half OpSec, avoid Hardened Targets when hurt, take the rarest card, buy Tools first, and trim the most-duplicated starter card. These are rough player stand-ins, not optimal play.
+- **Fight-bot fix: stripping enemy Block now counts in the score (at half value).** Before, a first hit that only removed Block looked worthless, so lookahead bots ended their turns forever against block-only enemies and hit the turn cap. A regression test covers it. M2 fight numbers moved by less than 2 OpSec.
+- **A run counts as "stuck" if a bot ever sends an invalid action**, so a bot bug shows up in the report instead of looping forever.
+- **Sensible run bots pick cards by measured value, not rarity.** `cardValues.ts` plays each class's starter Arsenal, with and without one extra pool card, against every Act 1 normal and elite encounter. A card's value is the OpSec it saves per fight. Picking by rarity made the bot grab loud 0-days that hurt its runs, so it badly underrated both classes: Social Engineer went from 36% to 79% wins with the same game data. The bot now skips Loot when every choice scores at or below 0.
+
+### UI (Milestone 3 debug screens; the real phone UI is Milestone 4)
+- **The current run is saved to localStorage** after every action, under a versioned key, with every read and write in try/catch. A refresh or a locked phone doesn't lose the run. A malformed or old save is ignored.
+- **Replay links now cover runs:** `?class=<id>&seed=<n>` starts that exact run. Adding `&encounter=<id>` still starts a single practice fight.
+- **The map is HTML buttons over an SVG layer of links.** Nodes are 44px tap targets. Floor 1 is at the bottom and the boss is at the top, and the view scrolls to your next choices.
+- **Card choices (Weaponize, Go Dark, Wipe, event card picks) use one `DeckPicker` overlay.** Buttons are enabled by asking the engine whether the action is valid, so the UI never repeats rule checks. Weaponize shows each card as its v2 so you can see the upgrade before choosing.
+- **Every card shows "N · Tactic"** (kill chain step and name) through one shared `CardFace` component, used in the hand, Loot, the Dark Web and the Arsenal view.

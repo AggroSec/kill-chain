@@ -59,6 +59,10 @@ function evaluate(state: CombatState, content: ContentRegistry, chainWeight: num
       continue;
     }
     score -= enemy.integrity;
+    // Stripping block is worth something: it lets the next hit land. Without
+    // this, a first hit that only removes block looks useless and the bot
+    // ends its turn against block-heavy enemies forever.
+    score -= 0.5 * enemy.block;
     score += 2.5 * getStacks(enemy.statuses, CORE_STATUS.vuln);
     score += 2 * getStacks(enemy.statuses, CORE_STATUS.exposed);
     score += 1.5 * getStacks(enemy.statuses, CORE_STATUS.throttled);

@@ -1,9 +1,7 @@
-/** A card in hand. Shows cost, name, tactic, generated text and Chain hint. */
+/** A card in hand: tap to play. Highlights cards that would extend the Chain. */
 import { extendsChain, getCardDef } from '../engine';
 import type { CardInstance, CombatState, ContentRegistry } from '../engine';
-import { RARITY_NAMES, TERMS } from '../data/terms';
-import { TACTIC_NAMES } from '../data/tactics';
-import { describeCard } from './describe';
+import { CardFace } from './CardFace';
 
 interface HandCardProps {
   card: CardInstance;
@@ -15,19 +13,9 @@ interface HandCardProps {
 
 export function HandCard({ card, state, content, playable, onPlay }: HandCardProps) {
   const def = getCardDef(content, card.defId);
-  const chains = extendsChain(state.chain, def.tactic);
   return (
     <button type="button" className={`card card-${def.type}`} disabled={!playable} onClick={onPlay}>
-      <span className="card-top">
-        <span className="card-cost">{def.cost}</span>
-        <span className="card-rarity">{RARITY_NAMES[def.rarity]}</span>
-      </span>
-      <span className="card-name">{def.name}</span>
-      <span className={chains ? 'card-tactic chains' : 'card-tactic'}>
-        {TACTIC_NAMES[def.tactic]}
-        {chains && ` ▲ ${TERMS.chain}`}
-      </span>
-      <span className="card-text">{describeCard(def, content)}</span>
+      <CardFace def={def} content={content} extendsChain={extendsChain(state.chain, def.tactic)} />
     </button>
   );
 }

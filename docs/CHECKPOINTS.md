@@ -131,3 +131,104 @@ These are marked ★ in [`DECISIONS.md`](DECISIONS.md) because players will noti
 ### Layouts checked
 
 The setup and fight screens at 360px, 390px and 430px in headless Chrome. I fixed one bug (enemy panel text was vertically centered). Two enemies fit side by side at 360px.
+
+## Milestone 3: Run loop
+
+**Date:** 2026-11-16 · **Branch:** `milestone-3-run-loop`
+
+AggroSec made every design choice in this milestone, in chat and on issues #3–#7. The content proposal is #6.
+
+### What was built
+
+**Run engine (`src/engine/run/`)**
+- `startRun` and a pure `runReducer` that move between the phases: map → fight → Loot → … → boss. It's fully seeded, so the same seed and the same choices give the same run.
+- **Map generator:** 12 floors × 4 lanes with non-crossing paths. Node odds come from data, and the floor before the boss is all Safehouses. Your first 3 map fights use the easy pool.
+- **Loot:** pick 1 of 3 cards (or skip) plus Crypto. Hardened Targets add a Tool. The boss offers 2 0-day cards.
+- **Safehouse:**
+  - Lay Low recovers 35% of max OpSec.
+  - Weaponize upgrades a card to v2.
+  - Go Dark Wipes a card for free.
+- **Dark Web:** 5 cards (one 50% off) and 2 Tools. Wipes have no per-visit limit, and the price rises with each one.
+- **Intel events**, using run effects: Crypto, OpSec, cards, Tools, upgrades, Wipes, trade-ups, Heat and fights.
+- **OpSec carries over between fights.** The Arsenal can't drop below 5 cards. A fight that hits the turn cap burns the run.
+- **New mechanics:**
+  - **Heat:** raises your starting Alert for the next fight.
+  - **Tool fight bonuses:** less Noisy, extra turn-1 draw or Cycles, and start-of-fight effects.
+  - **`buffAllies`:** an enemy effect that buffs every other living enemy.
+
+**Content (data)**
+- 12 new cards per class (20-card Loot pools), and a hand-written v2 for all 48 cards.
+- 3 new Implants, 8 Tools and 8 Intel events.
+- **The Incident Response Team boss:** Forensics Analyst, Incident Commander and Threat Hunter.
+- Every card shows its kill chain step, e.g. "3 · Initial Access".
+
+**Simulator:** `npm run sim` now plays full runs (2,000 per class per bot). It reports:
+- win rate and floor reached
+- what ends runs
+- card pick-to-win, with outliers flagged
+- Tool and Safehouse win rates
+- turn caps, stuck runs and suspected infinites
+
+The sensible bots choose a route, Loot, the Safehouse option, Dark Web purchases and event choices. They pick cards by measured value. `--mode fights` keeps the single-fight report.
+
+**Debug run UI:**
+- A main menu to start a run, continue a saved run, or play a practice fight.
+- The map, Loot, Safehouse, Dark Web and Intel screens, a run header (OpSec, Crypto, floor, Heat, Tools, Arsenal), and win and lose screens.
+- The run is saved in localStorage, so refreshing doesn't lose it.
+- Replay links: `?class=…&seed=…`.
+
+**Tests:** 247 across 21 files:
+- **Run engine:** map invariants over 200 seeds, every phase and action, purity, Heat, Tool bonuses, trade-ups and the minimum Arsenal size.
+- **Content:** v2s, pools, Tools, events, run config and the boss.
+- **Simulator:** full-run smoke tests on real data, determinism, aggregation, and a regression test for the bot that stalled on enemy block.
+
+**Also this session:** the repo is public, GitHub Pages is live at https://aggrosec.github.io/kill-chain/, and the noncommercial license is in its own PR (#8).
+
+### What to playtest on a phone
+
+After merging, Pages deploys automatically. Open **https://aggrosec.github.io/kill-chain/** on your phone. No LAN or VPN needed.
+
+1. **Play a full run with each class.** Does 12 floors feel like the right length? Is it about as hard as 35–50% suggests?
+2. **The map:** can you read the route and tap nodes comfortably? Try planning a path around a Hardened Target (☠).
+3. **Social Engineer:** try a quiet build (Long Con, Watering Hole, Insider Contact) and keep Alert low into the boss.
+4. **Exploit Dev:** after this milestone's buffs, does Scan → Exploit feel strong enough? Do you still feel "loud"?
+5. **The IR Team boss:** does kill order matter? Try killing the Threat Hunter first, then the Forensics Analyst first.
+6. **Kill chain step numbers on cards:** does "play increasing numbers" make Chains easier to see?
+7. **Refresh mid-run:** the run should still be there (Menu → Continue Run).
+
+### Known issues
+
+- **One commit fails tests on its own:** 53df1c1. The test fix landed in the next commit (08d71de), because a force-push to amend it was blocked. Squash-merging hides this.
+- **The debug UI isn't the phone UI yet** (Milestone 4):
+  - Fights inside a run don't show the run header (Crypto, Tools).
+  - There's no card inspect panel.
+  - The map is functional but plain.
+- **Hit-all-enemies cards are weak against the Honeypot.** Email Collection, Drive-by Compromise and Web Shell all measure as net negatives on starter decks (see BALANCE.md). It works as designed, but worth watching in playtests.
+- **Six cards sit slightly under the 35% pick-to-win line** (29–34%): MFA Fatigue, Help Desk Pretext, Living off the Land, Exploitation for Privilege Escalation, Escape to Host and Scripting. Not dramatic outliers, but candidates for a future pass.
+- **Floor 1 can roll a Hardened Target or Safehouse.** This is by design, since you chose not to fix floor 1. You can route around them.
+- **Card values are measured on starter decks only**, so they understate cards that need a built deck (e.g. Chain payoffs).
+- **The random bot never wins a run.** That's expected for random play over 12 floors.
+- **1–2 turn caps per 2,000 Social Engineer runs.** Ideas for the turn cap are in #7.
+- Carried over: the moderate `npm audit` advisory in dev-only lint tooling, and TypeScript pinned to 6.0.
+
+### Balance numbers
+
+`npm run sim`, 2,000 runs per class per bot, Act 1:
+
+| Bot | Social Engineer | Exploit Dev |
+| --- | --- | --- |
+| greedy | 40% (avg floor 12.5) | 35% (avg floor 11.8) |
+| chain | 39% (avg floor 12.6) | 35% (avg floor 11.7) |
+| random | 0% | 0% |
+
+Both classes are inside the 35–50% target (#5). The IR Team ends about half of all runs. There were no stuck runs and no suspected infinites. The tuning history is in [`BALANCE.md`](BALANCE.md), including how fixing the bot's card picks changed the picture.
+
+### Decisions for your review
+
+You made all the design decisions in this milestone. Implementation choices are in [`DECISIONS.md`](DECISIONS.md) under Milestone 3: the run engine structure, v2s as "+" ids, the simulator bots, localStorage saves and the map rendering.
+
+### Layouts checked
+
+In headless Chrome at 360px, 390px and 430px: the menu, map, Intel, Loot, fight-in-run, Dark Web, Wipe picker, Safehouse and Weaponize picker. Two fixes came out of this:
+- The boss node is now centered.
+- Weaponize shows each card's v2, and Lay Low says "up to".

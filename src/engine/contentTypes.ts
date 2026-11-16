@@ -102,6 +102,18 @@ export interface CardDef {
   keywords?: CardKeywords;
   /** Optional art file name inside src/assets/cards/. Missing = generated placeholder. */
   art?: string;
+  /** What changes when this card is upgraded to v2. Omit if the card can't be upgraded. */
+  v2?: CardUpgrade;
+}
+
+/**
+ * The fields a v2 replaces. Anything left out stays the same as the base card.
+ * `keywords` replaces the whole keyword set (use {} to remove all keywords).
+ */
+export interface CardUpgrade {
+  cost?: number;
+  effects?: readonly CardEffect[];
+  keywords?: CardKeywords;
 }
 
 // ---------------------------------------------------------------------------
@@ -144,6 +156,8 @@ export type EnemyEffect =
   | { kind: 'cleanse' }
   /** Add stacks of a status to this enemy. */
   | { kind: 'buffSelf'; status: string; stacks: number }
+  /** Add stacks of a status to every OTHER living enemy (e.g. the Incident Commander). */
+  | { kind: 'buffAllies'; status: string; stacks: number }
   /** Destroy up to `count` of the Operator's Implants (oldest first). */
   | { kind: 'removeImplants'; count: number };
 

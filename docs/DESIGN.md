@@ -16,6 +16,8 @@ The fight is won when every enemy is at 0 Integrity and lost at 0 OpSec. After t
 
 Every card has a **cost**, a **type**, an **ATT&CK tactic**, a **rarity** (Starter / Public / Private / 0-day), an **owner** class, and a list of **effects** that resolve in order. Card text is generated from the effect data.
 
+Each card shows its **kill chain step** as a number and name, e.g. "3 · Initial Access" (AggroSec, #6). Players new to ATT&CK can build Chains just by playing increasing numbers. Every card also has a hand-written **v2** (upgrade) that changes only what's listed in its data.
+
 **Types**
 - **Attack / Skill:** played, then discarded.
 - **Implant:** installs a lasting effect on the Operator for the rest of the fight, then is Spent. Implants are the "persistence effects" that the Patch Cycle destroys.
@@ -73,11 +75,11 @@ Damage math, rounding down at each multiplier:
 
 | Class | Identity | Starter Arsenal (10) |
 | --- | --- | --- |
-| **Social Engineer** | Manipulates intents (Throttle, Stall) and keeps Alert low. Some cards get bonuses while Quiet. | 4 Phishing, 4 Masquerade, Pretexting, Impersonation |
-| **Exploit Dev** | Stacks Vuln with recon, then cashes it in with Exploit cards. Loud. EDR cleanses the setup. | 4 Brute Force, 4 Obfuscate, Active Scanning, Exploit Public App |
+| **Social Engineer** (70 OpSec) | Manipulates intents (Throttle, Stall) and keeps Alert low. Some cards get bonuses while Quiet. | 4 Phishing, 4 Masquerade, Pretexting, Impersonation |
+| **Exploit Dev** (75 OpSec) | Stacks Vuln with recon, then cashes it in with Exploit cards. Loud. EDR cleanses the setup. | 4 Brute Force, 4 Obfuscate, Active Scanning, Exploit Public App |
 | Insider | Unlockable, Milestone 5. | |
 
-Each class also has a pool of 8 cards to find as Loot (Milestone 3).
+Each class has a **20-card Loot pool** (Public, Private and 0-day). Cards are listed in `src/data/cards/`. How the pool grows later (a neutral pool or unlockable cards) is open in #3.
 
 ## Act 1 enemies
 
@@ -88,5 +90,32 @@ Each class also has a pool of 8 cards to find as Loot (Milestone 3).
 | **SOC Analyst** | normal | Raises Alert |
 | **Honeypot** | normal | Whenever a card damages it, Alert +2 |
 | **Patch Cycle** | elite (Hardened Target) | Destroys your oldest Implant; gains Hardened |
+| **Incident Response Team** | boss (3 enemies) | Forensics Analyst destroys Implants and cleanses; Incident Commander gives the others Hardened and raises Alert; Threat Hunter's multi-hit takes the Alert bonus on every hit |
 
-Encounter groups (easy, normal, elite) are in `src/data/encounters.ts`. The Act 1 boss (Incident Response Team) comes in Milestone 3.
+Encounter groups (easy, normal, elite, boss) are in `src/data/encounters.ts`. Boss enemies are in `src/data/bosses.ts`.
+
+## Run loop (Milestone 3, decided by AggroSec)
+
+Content and numbers were approved in #6. Balance changes since then are in [`BALANCE.md`](BALANCE.md). Exact numbers live in `src/data/runConfig.ts`.
+
+- **Map:** 12 floors × 4 lanes, then the boss. Each run's seed generates a new map: a new layout, new room placement and new encounters. The floor before the boss is all Safehouses. Your first 3 map fights come from the easy pool. Fights started by Intel events set their own difficulty and don't count toward those 3.
+- **OpSec carries over between fights with no automatic healing.** You recover at the Safehouse, through some events, and with some Tools.
+- **Map odds (floors 1–11):** Fight 50%, Intel 20%, Safehouse 10%, Hardened Target 10%, Dark Web 10%. There are no Safehouses on floor 11, and no Safehouse → Safehouse or Dark Web → Dark Web back to back.
+- **Loot:** pick 1 of 3 class cards (or skip), plus Crypto. Hardened Targets also drop a Tool. Bosses offer 2 cards, both 0-day.
+- **v2 upgrades are written by hand for each card.**
+- **Safehouse:** choose one option per visit.
+  - **Lay Low:** recover 35% of max OpSec.
+  - **Weaponize:** upgrade 1 card to v2.
+  - **Go Dark:** Wipe 1 card for free.
+  Balance is tracked in #4.
+- **Dark Web:** sells class cards, Tools and Wipes. You can Wipe as many times as you can afford, and each Wipe this run raises the price.
+- **Minimum Arsenal:** 5 cards. Wipe and Go Dark can't go below it.
+- **Intel nodes are always an event** (8 in Act 1). Some events add **Heat**, which raises your starting Alert for the next fight only.
+- **Tools** (8 so far) are passive run bonuses. They can change fights (less Noisy, extra turn-1 draw or Cycles, start-of-fight damage), pay out after wins, or improve Lay Low.
+- **Act 1 boss:** the Incident Response Team, fought as a team of 3 enemies.
+- **A fight that hits the turn cap burns the run**, the same as losing it.
+- **Difficulty target:** the greedy bot wins Act 1 35–50% of the time (#5).
+- **Balance changes after the run simulator** (AggroSec, see BALANCE.md):
+  - The IR Team is at 85% of the #6 Integrity, with every attack −1.
+  - The Patch Cycle has 72 Integrity.
+  - Exploit Dev cards apply +1 Vuln, have −1 Noisy and deal +1 Exploit damage per stack.

@@ -4,7 +4,7 @@
  * is a one-line change. Names of specific cards, enemies and statuses live
  * with their data instead.
  */
-import type { AlertLevelId, Rarity } from '../engine';
+import type { AlertLevelId, NodeKind, Rarity } from '../engine';
 
 export const TERMS = {
   gameTitle: 'Kill Chain',
@@ -33,7 +33,49 @@ export const TERMS = {
   turnCap: 'Timed Out',
   stalled: 'Stalled',
   allEnemies: 'ALL enemies',
+
+  // --- Run loop (Milestone 3) ---
+  crypto: 'Crypto',
+  loot: 'Loot',
+  skipLoot: 'Skip',
+  tool: 'Tool',
+  tools: 'Tools',
+  /** Appended to an upgraded card's name, e.g. "Phishing v2". */
+  upgradedSuffix: ' v2',
+  map: 'Map',
+  floor: 'Floor',
+  wipe: 'Wipe',
+  leave: 'Leave',
+  layLow: 'Lay Low',
+  weaponize: 'Weaponize',
+  goDark: 'Go Dark',
+  heat: 'Heat',
+  startRun: 'Start Run',
+  continueRun: 'Continue Run',
+  abandonRun: 'Abandon Run',
+  newRun: 'New Run',
+  practiceFight: 'Practice Fight',
+  mainMenu: 'Menu',
+  pickCard: 'Pick a card',
+  sold: 'Sold',
+  cancel: 'Cancel',
+  close: 'Close',
+  done: 'Done',
+  free: 'Free',
+  minArsenal: 'Your Arsenal is at its minimum size.',
+  noUpgrades: 'No cards can be upgraded.',
+  chooseNext: 'Choose your next target',
 } as const;
+
+/** Names for each kind of map node. */
+export const NODE_NAMES: Record<NodeKind, string> = {
+  fight: 'Fight',
+  elite: 'Hardened Target',
+  intel: 'Intel',
+  safehouse: 'Safehouse',
+  darkWeb: 'Dark Web',
+  boss: 'Boss',
+};
 
 export const ALERT_LEVEL_NAMES: Record<AlertLevelId, string> = {
   quiet: 'Quiet',

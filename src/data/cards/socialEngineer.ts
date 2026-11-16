@@ -1,7 +1,9 @@
 /**
- * Social Engineer cards. Identity: weaken and Stall enemy intents, keep Alert
- * low, and get bonuses while Quiet.
+ * Social Engineer cards, part 1: starter and Public.
+ * Identity: weaken and Stall enemy intents, keep Alert low, and get bonuses
+ * while Quiet. Private and 0-day cards are in socialEngineerRare.ts.
  *
+ * `v2` lists only what changes when the card is upgraded (Weaponize).
  * Content safety: names reference ATT&CK techniques for flavor only.
  */
 import type { CardDef } from '../../engine';
@@ -19,6 +21,7 @@ export const SOCIAL_ENGINEER_CARDS: readonly CardDef[] = [
     tactic: 'initial-access',
     cost: 1,
     effects: [{ kind: 'damage', amount: 6 }],
+    v2: { effects: [{ kind: 'damage', amount: 9 }] },
   },
   {
     id: 'masquerade',
@@ -29,6 +32,7 @@ export const SOCIAL_ENGINEER_CARDS: readonly CardDef[] = [
     tactic: 'defense-evasion',
     cost: 1,
     effects: [{ kind: 'block', amount: 5 }],
+    v2: { effects: [{ kind: 'block', amount: 8 }] },
   },
   {
     id: 'pretexting',
@@ -42,6 +46,12 @@ export const SOCIAL_ENGINEER_CARDS: readonly CardDef[] = [
       { kind: 'applyStatus', status: 'throttled', stacks: 2, target: 'target' },
       { kind: 'alert', amount: -1 },
     ],
+    v2: {
+      effects: [
+        { kind: 'applyStatus', status: 'throttled', stacks: 3, target: 'target' },
+        { kind: 'alert', amount: -2 },
+      ],
+    },
   },
   {
     id: 'impersonation',
@@ -55,9 +65,15 @@ export const SOCIAL_ENGINEER_CARDS: readonly CardDef[] = [
       { kind: 'block', amount: 4 },
       { kind: 'alert', amount: -2 },
     ],
+    v2: {
+      effects: [
+        { kind: 'block', amount: 7 },
+        { kind: 'alert', amount: -3 },
+      ],
+    },
   },
 
-  // --- Pool ---
+  // --- Public ---
   {
     id: 'spearphishing',
     name: 'Spearphishing',
@@ -70,6 +86,12 @@ export const SOCIAL_ENGINEER_CARDS: readonly CardDef[] = [
       { kind: 'damage', amount: 9 },
       { kind: 'ifAlert', atMost: 'quiet', then: [{ kind: 'draw', count: 1 }] },
     ],
+    v2: {
+      effects: [
+        { kind: 'damage', amount: 12 },
+        { kind: 'ifAlert', atMost: 'quiet', then: [{ kind: 'draw', count: 1 }] },
+      ],
+    },
   },
   {
     id: 'phishing-for-info',
@@ -83,6 +105,12 @@ export const SOCIAL_ENGINEER_CARDS: readonly CardDef[] = [
       { kind: 'applyStatus', status: 'throttled', stacks: 1, target: 'target' },
       { kind: 'alert', amount: -1 },
     ],
+    v2: {
+      effects: [
+        { kind: 'applyStatus', status: 'throttled', stacks: 2, target: 'target' },
+        { kind: 'alert', amount: -1 },
+      ],
+    },
   },
   {
     id: 'drive-by',
@@ -94,72 +122,101 @@ export const SOCIAL_ENGINEER_CARDS: readonly CardDef[] = [
     cost: 2,
     effects: [{ kind: 'damage', amount: 7, target: 'allEnemies' }],
     keywords: { noisy: 1 },
+    v2: { effects: [{ kind: 'damage', amount: 10, target: 'allEnemies' }] },
   },
   {
-    id: 'help-desk-pretext',
-    name: 'Help Desk Pretext',
+    id: 'vishing',
+    name: 'Vishing',
     owner,
-    rarity: 'private',
+    rarity: 'public',
+    type: 'attack',
+    tactic: 'initial-access',
+    cost: 1,
+    effects: [
+      { kind: 'damage', amount: 5 },
+      { kind: 'applyStatus', status: 'throttled', stacks: 1, target: 'target' },
+    ],
+    v2: {
+      effects: [
+        { kind: 'damage', amount: 8 },
+        { kind: 'applyStatus', status: 'throttled', stacks: 1, target: 'target' },
+      ],
+    },
+  },
+  {
+    id: 'watering-hole',
+    name: 'Watering Hole',
+    owner,
+    rarity: 'public',
+    type: 'skill',
+    tactic: 'resource-development',
+    cost: 1,
+    effects: [
+      { kind: 'block', amount: 7 },
+      { kind: 'ifAlert', atMost: 'quiet', then: [{ kind: 'draw', count: 1 }] },
+    ],
+    v2: {
+      effects: [
+        { kind: 'block', amount: 10 },
+        { kind: 'ifAlert', atMost: 'quiet', then: [{ kind: 'draw', count: 1 }] },
+      ],
+    },
+  },
+  {
+    id: 'search-open-websites',
+    name: 'Search Open Websites',
+    owner,
+    rarity: 'public',
+    type: 'skill',
+    tactic: 'reconnaissance',
+    cost: 1,
+    effects: [
+      { kind: 'draw', count: 2 },
+      { kind: 'alert', amount: -1 },
+    ],
+    v2: {
+      effects: [
+        { kind: 'draw', count: 3 },
+        { kind: 'alert', amount: -1 },
+      ],
+    },
+  },
+  {
+    id: 'steal-web-session-cookie',
+    name: 'Steal Web Session Cookie',
+    owner,
+    rarity: 'public',
+    type: 'attack',
+    tactic: 'credential-access',
+    cost: 1,
+    effects: [
+      { kind: 'damage', amount: 7 },
+      { kind: 'ifAlert', atMost: 'quiet', then: [{ kind: 'damage', amount: 4 }] },
+    ],
+    v2: {
+      effects: [
+        { kind: 'damage', amount: 9 },
+        { kind: 'ifAlert', atMost: 'quiet', then: [{ kind: 'damage', amount: 6 }] },
+      ],
+    },
+  },
+  {
+    id: 'trusted-relationship',
+    name: 'Trusted Relationship',
+    owner,
+    rarity: 'public',
     type: 'skill',
     tactic: 'initial-access',
-    cost: 2,
-    effects: [{ kind: 'applyStatus', status: 'stalled', stacks: 1, target: 'target' }],
-    keywords: { burner: true },
-  },
-  {
-    id: 'valid-accounts',
-    name: 'Valid Accounts',
-    owner,
-    rarity: 'private',
-    type: 'attack',
-    tactic: 'privilege-escalation',
-    cost: 1,
-    effects: [{ kind: 'damage', amount: 5, bonusPerChain: 3 }],
-  },
-  {
-    id: 'long-con',
-    name: 'Long Con',
-    owner,
-    rarity: 'private',
-    type: 'skill',
-    tactic: 'defense-evasion',
     cost: 1,
     effects: [
       { kind: 'block', amount: 6 },
-      { kind: 'ifAlert', atMost: 'quiet', then: [{ kind: 'block', amount: 3 }] },
+      { kind: 'applyStatus', status: 'throttled', stacks: 1, target: 'allEnemies' },
     ],
-    keywords: { stash: true },
-  },
-  {
-    id: 'insider-contact',
-    name: 'Insider Contact',
-    owner,
-    rarity: 'private',
-    type: 'implant',
-    tactic: 'persistence',
-    cost: 1,
-    effects: [{ kind: 'applyStatus', status: 'insider-contact', stacks: 1, target: 'self' }],
-  },
-  {
-    id: 'living-off-the-land',
-    name: 'Living off the Land',
-    owner,
-    rarity: 'zero-day',
-    type: 'skill',
-    tactic: 'defense-evasion',
-    cost: 1,
-    effects: [
-      {
-        kind: 'ifAlert',
-        atMost: 'quiet',
-        then: [
-          { kind: 'gainCycles', amount: 2 },
-          { kind: 'draw', count: 2 },
-        ],
-      },
-      { kind: 'ifAlert', atLeast: 'noisy', then: [{ kind: 'alert', amount: -4 }] },
-    ],
-    // Burner: without it, a trimmed Arsenal could replay this forever while Quiet.
-    keywords: { burner: true },
+    v2: {
+      effects: [
+        { kind: 'block', amount: 9 },
+        { kind: 'applyStatus', status: 'throttled', stacks: 1, target: 'allEnemies' },
+      ],
+    },
   },
 ];

@@ -13,7 +13,7 @@ describe('card text is generated from data', () => {
     expect(cardText('brute-force')).toBe('Deal 6 damage.');
     expect(cardText('obfuscate')).toBe('Gain 5 Block.');
     expect(cardText('exploit-public-app')).toBe(
-      'Deal 6 damage. Exploit: consume all Vuln, deal 4 damage per stack. Noisy 2.',
+      'Deal 6 damage. Exploit: consume all Vuln, deal 5 damage per stack. Noisy 1.',
     );
   });
 
