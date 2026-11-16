@@ -18,6 +18,8 @@ function makePlayer(parts: Partial<PlayerState>): PlayerState {
     drawPile: [],
     hand: [],
     discardPile: [],
+    spentPile: [],
+    statuses: {},
     ...parts,
   };
 }

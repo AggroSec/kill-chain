@@ -10,25 +10,21 @@
  * (not enough Cycles, bad index, fight already over) return the original
  * state object unchanged, so `next === prev` means "nothing happened".
  */
-import { absorbWithBlock } from './damage';
+import { clampAlert } from './alert';
+import { cloneCombatState } from './clone';
+import { advanceChain, emptyChain } from './chain';
 import { discardHand, drawCards } from './deck';
-import { chooseNextMove, getMove, recordMoveUsed } from './intents';
+import { effectsNeedTarget, isEnemyAlive, resolveCardEffects } from './effects';
+import type { EffectContext } from './effects';
+import { getEnemyDef, resolveEnemyEffects, runEnemyTurn } from './enemyTurn';
+import { chooseNextMove } from './intents';
 import { Rng } from './rng';
 import { CARDS_DRAWN_PER_TURN, TURN_CAP } from './rules';
-import type {
-  CardDef,
-  CardInstance,
-  CombatAction,
-  CombatSetup,
-  CombatState,
-  ContentRegistry,
-  EnemyDef,
-  EnemyState,
-} from './types';
+import { decayStatuses, getStatusDef } from './statuses';
+import type { CardDef, CardInstance, CombatAction, CombatSetup, CombatState, ContentRegistry, EnemyState } from './types';
 
-// ---------------------------------------------------------------------------
-// Lookups
-// ---------------------------------------------------------------------------
+export { getEnemyDef } from './enemyTurn';
+export { isEnemyAlive } from './effects';
 
 export function getCardDef(content: ContentRegistry, defId: string): CardDef {
   const def = content.cards[defId];
@@ -36,14 +32,9 @@ export function getCardDef(content: ContentRegistry, defId: string): CardDef {
   return def;
 }
 
-export function getEnemyDef(content: ContentRegistry, defId: string): EnemyDef {
-  const def = content.enemies[defId];
-  if (def === undefined) throw new Error(`Unknown enemy id "${defId}"`);
-  return def;
-}
-
-export function isEnemyAlive(enemy: EnemyState): boolean {
-  return enemy.integrity > 0;
+/** Does this card need the Operator to pick an enemy? */
+export function cardNeedsTarget(def: CardDef): boolean {
+  return effectsNeedTarget(def.effects);
 }
 
 // ---------------------------------------------------------------------------
@@ -68,6 +59,7 @@ export function startCombat(setup: CombatSetup, seed: number, content: ContentRe
       integrity: def.maxIntegrity,
       maxIntegrity: def.maxIntegrity,
       block: 0,
+      statuses: {},
       intentMoveId: '',
       lastMoveId: null,
       timesInARow: 0,
@@ -79,6 +71,8 @@ export function startCombat(setup: CombatSetup, seed: number, content: ContentRe
   const state: CombatState = {
     turn: 1,
     outcome: 'ongoing',
+    alert: 0,
+    chain: emptyChain(),
     player: {
       opsec: setup.opsec,
       maxOpsec: setup.maxOpsec,
@@ -88,24 +82,21 @@ export function startCombat(setup: CombatSetup, seed: number, content: ContentRe
       drawPile: rng.shuffle(cards),
       hand: [],
       discardPile: [],
+      spentPile: [],
+      statuses: {},
     },
     enemies,
     rngState: 0,
   };
 
-  drawCards(state.player, CARDS_DRAWN_PER_TURN, rng);
+  startPlayerTurn(state, rng, content);
   state.rngState = rng.state;
   return state;
 }
 
 // ---------------------------------------------------------------------------
-// Validation helpers (the UI uses these to grey out cards)
+// Validation (the UI and bots use this to know what's playable)
 // ---------------------------------------------------------------------------
-
-/** Does this card need an enemy target? True if any effect hits an enemy. */
-export function cardNeedsTarget(def: CardDef): boolean {
-  return def.effects.some((effect) => effect.kind === 'damage');
-}
 
 /** Why a card can't be played right now, or null if it can. */
 export type PlayBlockReason = 'combatOver' | 'noSuchCard' | 'notEnoughCycles' | 'invalidTarget';
@@ -144,84 +135,61 @@ export function combatReducer(state: CombatState, action: CombatAction, content:
 function playCard(state: CombatState, handIndex: number, targetIndex: number, content: ContentRegistry): CombatState {
   if (whyCantPlay(state, handIndex, targetIndex, content) !== null) return state;
 
-  const next = structuredClone(state);
+  const next = cloneCombatState(state);
+  const rng = new Rng(next.rngState);
   const player = next.player;
 
-  // Take the card out of hand and pay for it.
+  // 1. Take the card out of hand and pay for it.
   const [card] = player.hand.splice(handIndex, 1);
   if (card === undefined) return state; // unreachable: validated above
   const def = getCardDef(content, card.defId);
   player.cycles -= def.cost;
 
-  // Resolve each effect in order.
-  for (const effect of def.effects) {
-    switch (effect.kind) {
-      case 'damage': {
-        const target = next.enemies[targetIndex];
-        if (target === undefined || !isEnemyAlive(target)) break;
-        const { blockLeft, damageThrough } = absorbWithBlock(target.block, effect.amount);
-        target.block = blockLeft;
-        target.integrity = Math.max(0, target.integrity - damageThrough);
-        break;
-      }
-      case 'block':
-        player.block += effect.amount;
-        break;
-    }
+  // 2. Update the Chain first, so a card that extends it gets the bonus too.
+  next.chain = advanceChain(next.chain, def.tactic);
+
+  // 3. Resolve the card's effects in order.
+  const ctx: EffectContext = { state: next, rng, content, targetIndex, hitEnemies: new Set() };
+  resolveCardEffects(ctx, def.effects);
+
+  // 4. "When attacked" triggers (e.g. Honeypot), once per enemy this card damaged.
+  fireOnAttacked(next, ctx.hitEnemies, content);
+
+  // 5. Noisy cards raise Alert after they land.
+  if (def.keywords?.noisy !== undefined) {
+    next.alert = clampAlert(next.alert, def.keywords.noisy);
   }
 
-  player.discardPile.push(card);
-
-  if (next.enemies.every((enemy) => !isEnemyAlive(enemy))) {
-    next.outcome = 'won';
+  // 6. Where the card goes: Implants and Burners are spent for the fight.
+  if (def.type === 'implant' || def.keywords?.burner === true) {
+    player.spentPile.push(card);
+  } else {
+    player.discardPile.push(card);
   }
+
+  checkForWin(next);
+  next.rngState = rng.state;
   return next;
 }
 
 function endTurn(state: CombatState, content: ContentRegistry): CombatState {
   if (state.outcome !== 'ongoing') return state;
 
-  const next = structuredClone(state);
+  const next = cloneCombatState(state);
   const rng = new Rng(next.rngState);
   const player = next.player;
 
+  // Stash cards stay in hand; everything else is discarded.
+  const stashed = player.hand.filter((card) => getCardDef(content, card.defId).keywords?.stash === true);
+  player.hand = player.hand.filter((card) => !stashed.includes(card));
   discardHand(player);
+  player.hand = stashed;
+  decayStatuses(player.statuses, content);
 
-  // --- Enemy turn: each living enemy acts left to right. ---
-  for (const enemy of next.enemies) {
-    if (!isEnemyAlive(enemy)) continue;
-    const def = getEnemyDef(content, enemy.defId);
-    const move = getMove(def, enemy.intentMoveId);
-
-    // Enemy block lasts through the Operator's turn, then expires as the enemy acts.
-    enemy.block = 0;
-
-    for (const effect of move.effects) {
-      switch (effect.kind) {
-        case 'attack': {
-          const { blockLeft, damageThrough } = absorbWithBlock(player.block, effect.damage);
-          player.block = blockLeft;
-          player.opsec = Math.max(0, player.opsec - damageThrough);
-          break;
-        }
-        case 'block':
-          enemy.block += effect.amount;
-          break;
-      }
-    }
-    recordMoveUsed(enemy, move.id);
-
-    if (player.opsec <= 0) {
-      next.outcome = 'lost';
-      next.rngState = rng.state;
-      return next;
-    }
-  }
-
-  // Roll what each enemy will do next turn, so the Operator can see it.
-  for (const enemy of next.enemies) {
-    if (!isEnemyAlive(enemy)) continue;
-    enemy.intentMoveId = chooseNextMove(enemy, getEnemyDef(content, enemy.defId), rng);
+  runEnemyTurn(next, rng, content);
+  if (next.outcome !== 'ongoing') {
+    next.rngState = rng.state;
+    return next;
   }
 
   // Turn cap: guarantees every fight ends (see rules.ts).
@@ -231,12 +199,51 @@ function endTurn(state: CombatState, content: ContentRegistry): CombatState {
     return next;
   }
 
-  // --- Start of the Operator's next turn. ---
   next.turn++;
-  player.block = 0; // Operator block expires at the start of their turn.
-  player.cycles = player.maxCycles;
-  drawCards(player, CARDS_DRAWN_PER_TURN, rng);
-
+  startPlayerTurn(next, rng, content);
+  checkForWin(next); // an Implant could finish the last enemy
   next.rngState = rng.state;
   return next;
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Start of an Operator turn: reset block, Cycles and Chain, fire Implants, draw. */
+function startPlayerTurn(state: CombatState, rng: Rng, content: ContentRegistry): void {
+  const player = state.player;
+  player.block = 0;
+  player.cycles = player.maxCycles;
+  state.chain = emptyChain();
+
+  // Implants (and any other turn-start statuses) fire once per stack.
+  const ctx: EffectContext = { state, rng, content, targetIndex: -1, hitEnemies: new Set() };
+  for (const [statusId, stacks] of Object.entries(player.statuses)) {
+    const trigger = getStatusDef(content, statusId).onTurnStart;
+    if (trigger === undefined) continue;
+    for (let i = 0; i < stacks; i++) resolveCardEffects(ctx, trigger);
+  }
+  fireOnAttacked(state, ctx.hitEnemies, content);
+
+  drawCards(player, CARDS_DRAWN_PER_TURN, rng);
+}
+
+/**
+ * Fires each damaged enemy's "when attacked" effects once.
+ * Fires even if the hit was lethal: the Honeypot logged the attack either way.
+ */
+function fireOnAttacked(state: CombatState, hitEnemies: Set<number>, content: ContentRegistry): void {
+  for (const index of hitEnemies) {
+    const enemy = state.enemies[index];
+    if (enemy === undefined) continue;
+    const trigger = getEnemyDef(content, enemy.defId).onAttacked;
+    if (trigger !== undefined) resolveEnemyEffects(state, index, trigger, content);
+  }
+}
+
+function checkForWin(state: CombatState): void {
+  if (state.outcome === 'ongoing' && state.enemies.every((enemy) => !isEnemyAlive(enemy))) {
+    state.outcome = 'won';
+  }
 }

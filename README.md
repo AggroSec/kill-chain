@@ -4,7 +4,7 @@ A browser-playable deckbuilder roguelite with a cybersecurity theme. You're a re
 
 Built touch-first for phones, playable on desktop too.
 
-> **Status:** early development (Milestone 1: scaffold + combat core). See [`docs/CHECKPOINTS.md`](docs/CHECKPOINTS.md).
+> **Status:** early development (Milestone 2: content system). See [`docs/CHECKPOINTS.md`](docs/CHECKPOINTS.md).
 
 ## Play
 
@@ -18,16 +18,22 @@ Requires Node.js (current LTS).
 npm install
 npm run dev     # dev server at http://localhost:5173/kill-chain/
 npm run test    # unit tests (Vitest)
+npm run sim     # headless balance simulator (add -- --fights 1000 for more)
 npm run check   # typecheck + lint + tests (must pass before every commit)
 npm run build   # production build into dist/
 ```
+
+To play on a phone on the same Wi-Fi, run `npm run dev -- --host` and open the "Network" URL it prints.
+
+Any fight can be replayed exactly with a link like `/kill-chain/?class=exploit-dev&encounter=a1-edr&seed=123`. The seed is shown at the bottom of the fight screen.
 
 ## Project layout
 
 ```
 src/
   engine/   Pure, deterministic game logic (no DOM, no React, seeded RNG only)
-  data/     Cards, enemies and player-facing terms as typed data
+  data/     Cards, classes, enemies, statuses, encounters and player-facing terms as typed data
+  sim/      Headless simulator and bots (npm run sim)
   ui/       React components: render engine state, dispatch actions
   assets/   Card art and icons, credited in assets/ATTRIBUTION.md
 docs/       Design doc, decision log, checkpoints, balance reports
