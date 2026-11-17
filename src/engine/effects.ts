@@ -3,7 +3,7 @@
  * Everything here mutates the draft state it's given; combat.ts passes a clone.
  */
 import { clampAlert, isAlertInRange } from './alert';
-import { absorbWithBlock, operatorHitDamage } from './damage';
+import { absorbWithBlock, operatorBlock, operatorHitDamage } from './damage';
 import { drawCards } from './deck';
 import type { Rng } from './rng';
 import { addStacks, CORE_STATUS, getStacks, getStatusDef } from './statuses';
@@ -91,7 +91,8 @@ function resolveCardEffect(ctx: EffectContext, effect: CardEffect): void {
     }
 
     case 'block':
-      player.block += effect.amount;
+      // Chain boosts block like damage. Implants fire at turn start, when Chain is 0.
+      player.block += operatorBlock(effect.amount, state.chain.count);
       return;
 
     case 'draw':

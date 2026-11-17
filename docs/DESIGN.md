@@ -53,7 +53,7 @@ Tactics follow ATT&CK order: Reconnaissance → Resource Development → Initial
 
 - Within a turn, a card whose tactic comes **later** than the previous card's adds **+1 Chain**. Skipping tactics is fine.
 - The **same or an earlier** tactic breaks the Chain to 0, and that card starts a new sequence.
-- **Each Chain stack adds +2 damage to every damage hit**, including the hit from the card that just extended the Chain. Some cards add more per stack.
+- **Each Chain stack adds +2 damage to every damage hit and +2 to every block effect**, including the card that just extended the Chain. Some cards add more damage per stack. Implants fire at the start of the turn, when Chain is 0, so they get no bonus. (Block bonus: AggroSec, after M3, so a chain can end on a defensive card.)
 - Chain resets at the start of each turn. Cards in hand that would extend the current Chain are highlighted.
 
 ## Statuses
@@ -119,3 +119,4 @@ Content and numbers were approved in #6. Balance changes since then are in [`BAL
   - The IR Team is at 85% of the #6 Integrity, with every attack −1.
   - The Patch Cycle has 72 Integrity.
   - Exploit Dev cards apply +1 Vuln, have −1 Noisy and deal +1 Exploit damage per stack.
+  - With Chain boosting block, the IR Team got +10% Integrity back: Forensics Analyst 41, Incident Commander 85, Threat Hunter 47.

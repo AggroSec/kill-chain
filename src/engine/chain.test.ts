@@ -50,6 +50,16 @@ describe('Chain in combat', () => {
     expect(state.enemies[0]?.integrity).toBe(15);
   });
 
+  it('boosts block by 2 per stack, including on the card that extends it', () => {
+    let state = stateWithHand(['recon', 'poke', 'free'], { enemies: ['wall'] });
+    state = play(state, 'free'); // Chain 0: 1 block
+    expect(state.player.block).toBe(1);
+    state = stateWithHand(['recon', 'poke', 'free'], { enemies: ['wall'] });
+    state = play(play(play(state, 'recon'), 'poke'), 'free'); // Chain 2: 1 + 2x2 = 5
+    expect(state.chain.count).toBe(2);
+    expect(state.player.block).toBe(5);
+  });
+
   it('resets at the start of the next turn', () => {
     let state = stateWithHand(['recon', 'poke'], { enemies: ['wall'] });
     state = play(play(state, 'recon'), 'poke');
