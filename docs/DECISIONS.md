@@ -93,3 +93,13 @@ Design decisions for this milestone were made by AggroSec during planning (see t
 - **The map is HTML buttons over an SVG layer of links.** Nodes are 44px tap targets. Floor 1 is at the bottom and the boss is at the top, and the view scrolls to your next choices.
 - **Card choices (Weaponize, Go Dark, Wipe, event card picks) use one `DeckPicker` overlay.** Buttons are enabled by asking the engine whether the action is valid, so the UI never repeats rule checks. Weaponize shows each card as its v2 so you can see the upgrade before choosing.
 - **Every card shows "N · Tactic"** (kill chain step and name) through one shared `CardFace` component, used in the hand, Loot, the Dark Web and the Arsenal view.
+
+## Run logs (side task after Milestone 3, requested by AggroSec)
+
+- **A run log is the class, the seed and every action taken.** The engine is deterministic, so that is enough to replay a run exactly, every draw, intent and Loot roll included. No game events need logging. A full Act 1 run is about 400 bytes, small enough to paste from a phone.
+- **Actions are short tokens** (`p2.0` = play hand card 2 at enemy 0, `e` = end turn, `n:3-1` = go to node 3-1; see `src/engine/run/runLog.ts`). The text format is plain `key: value` lines, so a log survives being pasted into a GitHub issue or a chat message, and the parser ignores text around it.
+- **Each log records the build (short commit id).** Card or enemy changes after that commit can make a replay drift. The replay warns about a mismatch and stops at the first action the engine rejects.
+- **The save now stores the action list.** Saves from before this change have none. Their log carries the final run state as JSON instead, so the run that prompted this feature can still be looked at.
+- **The last 5 finished or abandoned runs are kept** in localStorage when a new run starts, so a log isn't lost by starting another run.
+- **Getting a log off the phone:** Menu → Run Logs, or the Burned/Exfiltrated screen. Copy Log uses the clipboard, and the text sits in a box you can select by hand if the clipboard is blocked. Report on GitHub opens a new issue with the log prefilled (hidden if the URL would be too long).
+- **`npm run replay -- <file>`** prints a turn-by-turn account (hands, intents, each card's effect, enemy turns, Loot and shop choices) by comparing the state before and after each action.

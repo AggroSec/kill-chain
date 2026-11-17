@@ -65,6 +65,16 @@ export const TERMS = {
   minArsenal: 'Your Arsenal is at its minimum size.',
   noUpgrades: 'No cards can be upgraded.',
   chooseNext: 'Choose your next target',
+
+  // --- Run logs (bug reports) ---
+  runLog: 'Run log',
+  runLogs: 'Run Logs',
+  copyLog: 'Copy Log',
+  copied: 'Copied',
+  copyFailed: 'Copy was blocked. Tap the box, select all and copy by hand.',
+  reportOnGitHub: 'Report on GitHub',
+  runLogHelp: 'A run log is your seed plus every move you made, so the run can be replayed exactly. Paste it into a GitHub issue or a message.',
+  noRunLogs: 'No runs yet.',
 } as const;
 
 /** Names for each kind of map node. */

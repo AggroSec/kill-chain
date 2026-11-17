@@ -6,6 +6,7 @@ import { runReducer } from '../../engine';
 import type { RunAction, RunContent, RunState } from '../../engine';
 import { TERMS } from '../../data/terms';
 import { CombatView } from '../CombatView';
+import { RunLogPanel } from '../RunLogPanel';
 import { DarkWebView } from './DarkWebView';
 import { IntelView } from './IntelView';
 import { LootView } from './LootView';
@@ -22,9 +23,11 @@ interface RunViewProps {
   onAction: (action: RunAction) => void;
   onMenu: () => void;
   onNewRun: () => void;
+  /** The run's log, shown on the end screen for bug reports. */
+  log: { label: string; text: string };
 }
 
-export function RunView({ run, seed, content, onAction, onMenu, onNewRun }: RunViewProps) {
+export function RunView({ run, seed, content, onAction, onMenu, onNewRun, log }: RunViewProps) {
   const props: PhaseProps = {
     run,
     content,
@@ -47,6 +50,7 @@ export function RunView({ run, seed, content, onAction, onMenu, onNewRun }: RunV
             {TERMS.newRun}
           </button>
         </section>
+        <RunLogPanel label={log.label} text={log.text} />
       </main>
     );
   }

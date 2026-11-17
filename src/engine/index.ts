@@ -18,3 +18,5 @@ export { generateMap, reachableNodeIds, BOSS_NODE_ID } from './run/map';
 export { withUpgrades, isUpgraded, baseCardId, canUpgrade, upgradedId } from './run/upgrades';
 export { wipePrice, classCardPool } from './run/loot';
 export { runEffectsNeedDeckIndex } from './run/runEffects';
+export { encodeAction, decodeAction, formatRunLog, parseRunLog, replayRun, RUN_LOG_HEADER } from './run/runLog';
+export type { RunLog, ReplayStep } from './run/runLog';
