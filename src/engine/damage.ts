@@ -2,7 +2,7 @@
  * Damage and block math, shared by the Operator and enemies.
  */
 import { getAlertLevel } from './alert';
-import { CHAIN_DAMAGE_PER_STACK, EXPOSED_DAMAGE_MULTIPLIER, THROTTLED_DAMAGE_MULTIPLIER } from './rules';
+import { CHAIN_BLOCK_PER_STACK, CHAIN_DAMAGE_PER_STACK, EXPOSED_DAMAGE_MULTIPLIER, THROTTLED_DAMAGE_MULTIPLIER } from './rules';
 import { CORE_STATUS, getStacks } from './statuses';
 import type { Statuses } from './types';
 
@@ -24,6 +24,11 @@ export function absorbWithBlock(block: number, damage: number): BlockResult {
     blockLeft: block - absorbed,
     damageThrough: safeDamage - absorbed,
   };
+}
+
+/** Block the Operator gains from one block effect: base + Chain bonus. */
+export function operatorBlock(base: number, chainCount: number): number {
+  return base + chainCount * CHAIN_BLOCK_PER_STACK;
 }
 
 /**

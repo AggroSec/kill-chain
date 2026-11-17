@@ -12,7 +12,7 @@ export const BOSS_LIST: readonly EnemyDef[] = [
     id: 'forensics-analyst',
     name: 'Forensics Analyst',
     tier: 'boss',
-    maxIntegrity: 37,
+    maxIntegrity: 41,
     description: 'Incident Response Team. Destroys your Implants and cleanses debuffs from the team.',
     moves: [
       {
@@ -39,7 +39,7 @@ export const BOSS_LIST: readonly EnemyDef[] = [
     id: 'incident-commander',
     name: 'Incident Commander',
     tier: 'boss',
-    maxIntegrity: 77,
+    maxIntegrity: 85,
     description: 'Incident Response Team. Hardens the rest of the team and raises Alert.',
     moves: [
       {
@@ -66,7 +66,7 @@ export const BOSS_LIST: readonly EnemyDef[] = [
     id: 'threat-hunter',
     name: 'Threat Hunter',
     tier: 'boss',
-    maxIntegrity: 43,
+    maxIntegrity: 47,
     description: 'Incident Response Team. Multi-hit attacks: the Alert bonus applies to every hit.',
     moves: [
       { id: 'hunt', name: 'Hunt', effects: [{ kind: 'attack', damage: 6 }], weight: 2, maxInARow: 2 },

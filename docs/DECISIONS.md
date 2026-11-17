@@ -103,3 +103,9 @@ Design decisions for this milestone were made by AggroSec during planning (see t
 - **The last 5 finished or abandoned runs are kept** in localStorage when a new run starts, so a log isn't lost by starting another run.
 - **Getting a log off the phone:** Menu → Run Logs, or the Burned/Exfiltrated screen. Copy Log uses the clipboard, and the text sits in a box you can select by hand if the clipboard is blocked. Report on GitHub opens a new issue with the log prefilled (hidden if the URL would be too long).
 - **`npm run replay -- <file>`** prints a turn-by-turn account (hands, intents, each card's effect, enemy turns, Loot and shop choices) by comparing the state before and after each action.
+
+## Chain boosts block (after Milestone 3, chosen by AggroSec)
+
+- **Each Chain stack adds +2 to block effects**, the same as damage. Most block cards are Defense Evasion (kill chain step 7), so they tend to land late in a chain, where the Chain bonus used to be wasted. The bonus lives in `operatorBlock()` next to `operatorHitDamage()`, with the number in `rules.ts` (`CHAIN_BLOCK_PER_STACK`).
+- **Statuses get no Chain bonus.** Simmed as +1 stack per 2 Chain: it moved win rates by under 1 point, because almost every status card is kill chain step 1–3 and starts a chain instead of ending one. Future Chain ideas are collected in an issue.
+- **Retune: boss team Integrity +10%** (Forensics Analyst 37 → 41, Incident Commander 77 → 85, Threat Hunter 43 → 47). Boss-only changes kept the two classes level. Changes to all enemies hurt Exploit Dev more, because it loses more runs before the boss. See BALANCE.md.

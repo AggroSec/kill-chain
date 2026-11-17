@@ -17,6 +17,9 @@ export const TURN_CAP = 50;
 /** Extra damage per hit for each Chain stack (see chain.ts). */
 export const CHAIN_DAMAGE_PER_STACK = 2;
 
+/** Extra block per block effect for each Chain stack (AggroSec, after M3), so chains can end on defense. */
+export const CHAIN_BLOCK_PER_STACK = 2;
+
 /** Exposed enemies take this much more damage from attacks (0.5 = +50%). */
 export const EXPOSED_DAMAGE_MULTIPLIER = 1.5;
 

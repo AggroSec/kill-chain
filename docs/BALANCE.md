@@ -280,3 +280,136 @@ Runs per class per bot: 2000. Act 1 only; beating the boss wins the run.
 - greedy/exploit-dev: exploitation-for-privilege-escalation pick-to-win 31% (below 35%)
 - greedy/exploit-dev: escape-to-host pick-to-win 34% (below 35%)
 - greedy/exploit-dev: scripting pick-to-win 30% (below 35%)
+
+## Chain block bonus and boss retune (after Milestone 3)
+
+AggroSec chose Chain +2 block plus a retune. 2,000 runs per class per bot; win % for SE / ED with the greedy and chain bots.
+
+### Chain variants (no retune)
+
+| Chain rule | SE greedy / chain | ED greedy / chain |
+| --- | --- | --- |
+| Damage only (M3) | 40% / 39% | 35% / 35% |
+| Block +1 per stack | 45% / 49% | 41% / 39% |
+| Block +2 per stack | 58% / 56% | 56% / 57% |
+| Block +2, statuses +1 per 2 Chain | 58% / 56% | 56% / 57% |
+
+### Retunes with block +2
+
+| Retune | SE greedy / chain | ED greedy / chain |
+| --- | --- | --- |
+| None | 58% / 56% | 56% / 57% |
+| **Boss Integrity +10% (chosen)** | **45% / 45%** | **45% / 46%** |
+| Boss Integrity +15% | 38% / 39% | 40% / 41% |
+| Boss Integrity +20% | 35% / 35% | 36% / 37% |
+| Boss attacks +10% | 47% / 46% | 47% / 48% |
+| Boss attacks +20% | 32% / 31% | 34% / 36% |
+| All enemies Integrity +10% | 43% / 42% | 36% / 35% |
+| All enemies attacks +10% | 47% / 46% | 34% / 34% |
+| Lay Low 35% → 30% | 55% / 54% | 52% / 52% |
+
+### Full report (chosen settings)
+
+Runs per class per bot: 2000. Act 1 only; beating the boss wins the run.
+
+### Win rate
+
+| Bot | Class | Win | Avg floor reached | Turn caps | Stuck | Suspected infinites |
+| --- | --- | --- | --- | --- | --- | --- |
+| random | Social Engineer | 0% | 7.4 | 0 | 0 | 0 |
+| random | Exploit Dev | 0% | 7.1 | 0 | 0 | 0 |
+| greedy | Social Engineer | 45% | 12.9 | 1 | 0 | 0 |
+| greedy | Exploit Dev | 45% | 12.4 | 0 | 0 | 0 |
+| chain | Social Engineer | 45% | 12.9 | 3 | 0 | 0 |
+| chain | Exploit Dev | 46% | 12.3 | 0 | 0 | 0 |
+
+### Social Engineer, greedy bot: what ends runs
+
+- Forensics Analyst + Incident Commander + Threat Hunter: 1071 (54%)
+- SOC Analyst + SOC Analyst: 10 (1%)
+- Firewall + Honeypot: 10 (1%)
+- EDR + Honeypot: 8 (0%)
+- Patch Cycle: 6 (0%)
+- Honeypot + SOC Analyst: 4 (0%)
+
+### Social Engineer, greedy bot: card pick-to-win
+
+| Card | Runs with it | Win rate |
+| --- | --- | --- |
+| Watering Hole | 1750 | 44% |
+| Trusted Relationship | 1653 | 44% |
+| Spearphishing | 1300 | 50% |
+| Long Con | 1151 | 44% |
+| Phishing for Info | 1062 | 48% |
+| Insider Contact | 1003 | 51% |
+| Steal Web Session Cookie | 812 | 56% |
+| MFA Fatigue | 769 | 33% |
+| Supply Chain Compromise | 701 | 56% |
+| Vishing | 536 | 40% |
+| Valid Accounts | 445 | 52% |
+| Help Desk Pretext | 271 | 33% |
+| Internal Spearphishing | 139 | 56% |
+| Exfiltration Over Web Service | 99 | 48% |
+| Living off the Land | 49 | 43% |
+
+### Social Engineer, greedy bot: Tools and Safehouse
+
+| Tool / choice | Runs | Win rate |
+| --- | --- | --- |
+| VPN Subscription | 534 | 48% |
+| Ghost Persona | 534 | 55% |
+| Go Bag | 498 | 47% |
+| USB Drop | 498 | 52% |
+| Dead Drop | 496 | 49% |
+| Cold Wallet | 486 | 43% |
+| Proxy Chain | 481 | 42% |
+| Burner Phone | 477 | 49% |
+| Safehouse: WEAPONIZE | 1423 | 45% |
+| Safehouse: LAY_LOW | 1023 | 47% |
+
+### Exploit Dev, greedy bot: what ends runs
+
+- Forensics Analyst + Incident Commander + Threat Hunter: 807 (40%)
+- Firewall + Honeypot: 76 (4%)
+- Patch Cycle: 70 (4%)
+- SOC Analyst + SOC Analyst: 57 (3%)
+- EDR + Honeypot: 44 (2%)
+- Honeypot + SOC Analyst: 30 (2%)
+- Firewall: 3 (0%)
+- EDR: 3 (0%)
+- SOC Analyst: 2 (0%)
+
+### Exploit Dev, greedy bot: card pick-to-win
+
+| Card | Runs with it | Win rate |
+| --- | --- | --- |
+| Stage Payload | 1620 | 49% |
+| Fuzzing | 1515 | 47% |
+| Vulnerability Scanning | 1273 | 52% |
+| Scripting | 1176 | 42% |
+| Kernel Exploit | 1174 | 48% |
+| Process Injection | 969 | 45% |
+| Exploitation for Credential Access | 808 | 49% |
+| Escape to Host | 731 | 41% |
+| Impair Defenses | 582 | 45% |
+
+### Exploit Dev, greedy bot: Tools and Safehouse
+
+| Tool / choice | Runs | Win rate |
+| --- | --- | --- |
+| VPN Subscription | 474 | 56% |
+| Dead Drop | 455 | 48% |
+| Ghost Persona | 454 | 52% |
+| Go Bag | 445 | 50% |
+| Proxy Chain | 443 | 43% |
+| USB Drop | 437 | 54% |
+| Cold Wallet | 425 | 46% |
+| Burner Phone | 420 | 46% |
+| Safehouse: WEAPONIZE | 1013 | 52% |
+| Safehouse: LAY_LOW | 1433 | 52% |
+
+### Warnings
+
+- greedy/social-engineer: mfa-fatigue pick-to-win 33% (below 35%)
+- greedy/social-engineer: help-desk-pretext pick-to-win 33% (below 35%)
+
