@@ -8,6 +8,8 @@ import type { PhaseProps } from './phaseProps';
 
 export function DarkWebView({ run, content, act, can }: PhaseProps) {
   const [wiping, setWiping] = useState(false);
+  /** Card selected for buying (tap to select, then confirm, like everywhere else). */
+  const [selected, setSelected] = useState<number | null>(null);
   if (run.phase.kind !== 'darkWeb') return null;
   const { cards, tools } = run.phase;
   const price = wipePrice(run, content);
@@ -18,6 +20,7 @@ export function DarkWebView({ run, content, act, can }: PhaseProps) {
         title={`${TERMS.wipe} (${price} ${TERMS.crypto})`}
         deck={run.deck}
         content={content}
+        confirmLabel={TERMS.wipe}
         canPick={(i) => can({ type: 'BUY_WIPE', deckIndex: i })}
         onPick={(i) => {
           setWiping(false);
@@ -39,9 +42,10 @@ export function DarkWebView({ run, content, act, can }: PhaseProps) {
             <div key={item.id} className="shop-item">
               <button
                 type="button"
-                className={`card card-${def.type}`}
+                className={selected === index ? 'card-button selected' : 'card-button'}
                 disabled={!can({ type: 'BUY_CARD', index })}
-                onClick={() => act({ type: 'BUY_CARD', index })}
+                aria-pressed={selected === index}
+                onClick={() => setSelected(selected === index ? null : index)}
               >
                 <CardFace def={def} content={content} />
               </button>
@@ -50,6 +54,19 @@ export function DarkWebView({ run, content, act, can }: PhaseProps) {
           );
         })}
       </div>
+      {selected !== null && cards[selected] !== undefined && (
+        <button
+          type="button"
+          className="primary"
+          disabled={!can({ type: 'BUY_CARD', index: selected })}
+          onClick={() => {
+            setSelected(null);
+            act({ type: 'BUY_CARD', index: selected });
+          }}
+        >
+          {TERMS.buy} {content.cards[cards[selected].id]?.name} · {cards[selected].price} {TERMS.crypto}
+        </button>
+      )}
       {tools.map((item, index) => {
         const tool = content.tools[item.id];
         if (tool === undefined) return null;
@@ -68,7 +85,7 @@ export function DarkWebView({ run, content, act, can }: PhaseProps) {
         </strong>
         <span className="muted">Remove 1 card from your {TERMS.arsenal}. The price rises each time.</span>
       </button>
-      <button type="button" className="primary" onClick={() => act({ type: 'LEAVE' })}>
+      <button type="button" className="secondary" onClick={() => act({ type: 'LEAVE' })}>
         {TERMS.leave}
       </button>
     </section>

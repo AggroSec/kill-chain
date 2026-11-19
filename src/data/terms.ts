@@ -66,6 +66,36 @@ export const TERMS = {
   noUpgrades: 'No cards can be upgraded.',
   chooseNext: 'Choose your next target',
 
+  // --- Fight screen (Milestone 4) ---
+  play: 'Play',
+  cost: 'Cost',
+  upgraded: 'Upgraded',
+  newEffect: 'New effect',
+  take: 'Take',
+  buy: 'Buy',
+  choose: 'Choose',
+  tapEnemy: 'Tap an enemy to target it',
+  notEnoughCycles: 'Not enough Cycles',
+  menu: 'Menu',
+  hand: 'Hand',
+  incoming: 'Incoming',
+
+  resume: 'Resume',
+  glossary: 'Glossary',
+  settings: 'Settings',
+  credits: 'Credits',
+  theme: 'Theme',
+  back: 'Back',
+  quitToMenu: 'Save and quit to menu',
+  quitPractice: 'Quit to menu',
+  savedNote: 'Your run is saved after every move.',
+  howToPlay: 'How to Play',
+  skipTutorial: 'Skip tutorial',
+  tutorialOffer: 'New here? Play a short guided fight to learn the basics.',
+  startTutorial: 'Play the guided fight',
+  noThanks: 'No thanks',
+  tutorialDone: 'That is the basics. The Glossary in the Menu explains every term. Good luck out there, Operator.',
+
   // --- Run logs (bug reports) ---
   runLog: 'Run log',
   runLogs: 'Run Logs',
@@ -75,6 +105,13 @@ export const TERMS = {
   reportOnGitHub: 'Report on GitHub',
   runLogHelp: 'A run log is your seed plus every move you made, so the run can be replayed exactly. Paste it into a GitHub issue or a message.',
   noRunLogs: 'No runs yet.',
+} as const;
+
+/** Theme names for Settings. */
+export const THEME_NAMES = {
+  green: 'Green terminal',
+  amber: 'Amber terminal',
+  soft: 'Soft dark',
 } as const;
 
 /** Names for each kind of map node. */

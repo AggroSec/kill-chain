@@ -109,3 +109,21 @@ Design decisions for this milestone were made by AggroSec during planning (see t
 - **Each Chain stack adds +2 to block effects**, the same as damage. Most block cards are Defense Evasion (kill chain step 7), so they tend to land late in a chain, where the Chain bonus used to be wasted. The bonus lives in `operatorBlock()` next to `operatorHitDamage()`, with the number in `rules.ts` (`CHAIN_BLOCK_PER_STACK`).
 - **Statuses get no Chain bonus.** Simmed as +1 stack per 2 Chain: it moved win rates by under 1 point, because almost every status card is kill chain step 1–3 and starts a chain instead of ending one. Future Chain ideas are collected in an issue.
 - **Retune: boss team Integrity +10%** (Forensics Analyst 37 → 41, Incident Commander 77 → 85, Threat Hunter 43 → 47). Boss-only changes kept the two classes level. Changes to all enemies hurt Exploit Dev more, because it loses more runs before the boss. See BALANCE.md.
+
+## Milestone 4: Playable phone UI
+
+Design choices were made by AggroSec in #17 (hand fan, tap-then-target, enemy row, tactic icons, v2 badges, help in M4, three themes). Implementation choices are logged here.
+
+- **The fan is laid out in code (`fanPosition` in `Hand.tsx`), not CSS.** It needs the hand's real width to work out the overlap, and unit tests check that 1–10 cards stay on screen at 360, 390 and 430px.
+- **Slide-to-select on the hand.** With 10 cards on a 360px screen, each card shows only about 27px, below the 44px tap-target rule. Sliding a finger across the fan lifts the card under it, so a big hand stays usable. Taps alone still work everywhere (CLAUDE.md: dragging is never required).
+- **Chain-boosted numbers come from the engine.** `cardAtChain()` returns the card with the Chain bonus added to damage and block, and a test checks it matches what playing the card really does. Exploit's Chain bonus is added to the total, so it can't be shown per stack and is left as is.
+- **Changed numbers are found by comparing text.** A word-level diff (`textDiff.ts`) of the base and changed card text drives both the Chain highlights and the v2 "6 → 9" previews, with no hand-written upgrade notes.
+- **v2 badges compare card data, not text.** Text was ambiguous (e.g. "Lower Alert by 3 → 4" read as "+1"). `upgradeSummary()` compares the effects, puts cost changes first and shows at most 2 changes.
+- **Card picks are select-then-confirm everywhere.** Picking was one tap in M3, so a stray tap while scrolling could take or delete the wrong card.
+- **Themes are CSS variables keyed on `<html data-theme>`.** Every color comes from these variables, so a new theme is one CSS block. Card frames take their hue from the tactic, and each theme sets the saturation and lightness. The saved theme is applied before the first render, so the page never flashes the default colors.
+- **Tactic icons are game-icons.net SVGs used as CSS masks,** so they take the frame color in every theme. The black background square was removed. Small SVGs are inlined by Vite as `data:` URLs, which must be quoted inside `url()`.
+- **Card art stays data-driven.** Drop an image in `src/assets/cards/` and set the card's `art` field. A missing or broken image falls back to the placeholder.
+- **The glossary takes its numbers from the engine** (Alert thresholds, Chain bonus, Cycles), and statuses come from their data, so it can't drift from the rules. A test checks that every icon author in ATTRIBUTION.md is also on the credits screen.
+- **The guided fight is a normal fight with a fixed seed and +1 card on turn 1** (an existing Tool modifier), plus a list of tips that advance on game state. A test pins the opening hand and steps through the script, so a content change can't silently break it.
+- **The pause menu opens on top of the game,** so Glossary and Settings never interrupt a fight. Runs autosave after every move, so "Save and quit" just leaves.
+- **Replays now show status changes** (e.g. "Firewall +2 Throttled") instead of "no visible change".

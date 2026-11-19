@@ -1,75 +1,4 @@
-/* Milestone 3 run screens (debug styling). Tap targets stay at least 44px. */
-
-.panel,
-.overlay {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px;
-}
-
-.overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 10;
-  overflow-y: auto;
-  border-radius: 0;
-  padding-bottom: max(12px, env(safe-area-inset-bottom));
-}
-
-.panel p {
-  margin: 0;
-}
-
-button.secondary,
-button.option,
-label.option {
-  min-height: 44px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg);
-  color: var(--text);
-  font: inherit;
-  cursor: pointer;
-}
-
-button.secondary {
-  padding: 0 16px;
-}
-
-button.small-button {
-  min-height: 44px;
-  padding: 0 12px;
-  font-size: 0.85rem;
-}
-
-button.option,
-label.option {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 10px 12px;
-  text-align: left;
-}
-
-label.option.selected {
-  border-color: var(--accent);
-}
-
-label.option input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-button.secondary:disabled,
-button.option:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
+/* Run screens. Tap targets stay at least 44px. Shared panels and buttons are in styles.css. */
 
 .class-pick {
   display: flex;
@@ -83,17 +12,6 @@ button.option:disabled {
 .class-pick legend {
   margin-bottom: 8px;
   color: var(--muted);
-}
-
-/* Cards in Loot, the Dark Web and the Arsenal wrap into a grid instead of a scrolling hand. */
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
-  gap: 8px;
-}
-
-.card-grid .card {
-  width: auto;
 }
 
 .shop-item {
@@ -251,4 +169,37 @@ a.link-button {
   border-radius: 8px;
   color: var(--text);
   text-decoration: none;
+}
+
+/* --- Card pickers (Weaponize, Go Dark, Wipe, Intel) --- */
+
+.picker {
+  padding-bottom: 88px; /* room for the confirm bar */
+}
+
+.picker-slot {
+  display: flex;
+  flex-direction: column;
+}
+
+.picker-confirm {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  padding: 12px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  background: linear-gradient(transparent, var(--bg) 30%);
+}
+
+.picker-confirm button {
+  width: 100%;
+  max-width: 480px;
+}
+
+.loot-crypto {
+  color: var(--warn);
+  font-weight: 700;
 }

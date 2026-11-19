@@ -1,0 +1,289 @@
+/* Fight screen. Portrait phone first; everything fits in one screen height without scrolling. */
+
+.combat-screen {
+  gap: 8px;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.combat-top .turn {
+  font-family: var(--heading-font);
+  font-size: 0.9rem;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* --- Bars (Integrity, OpSec, Alert) --- */
+
+.bar {
+  position: relative;
+  display: block;
+  height: 16px;
+  border-radius: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: currentColor;
+  opacity: 0.35;
+  transition: width 0.25s ease-out;
+}
+
+.bar-label {
+  position: relative;
+  display: block;
+  font-size: 0.7rem;
+  line-height: 14px;
+  text-align: center;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.alert-meter {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 0.7rem;
+  font-family: var(--heading-font);
+}
+
+/* --- Enemies: a row of up to 3 compact panels --- */
+
+.enemies {
+  display: flex;
+  gap: 6px;
+}
+
+.enemy {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.enemy.defeated {
+  opacity: 0.3;
+}
+
+.enemy.targetable {
+  border-color: var(--warn);
+  box-shadow: 0 0 0 2px var(--warn);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--warn) 40%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enemy.targetable {
+    animation: none;
+  }
+}
+
+.enemy-name {
+  font-weight: 650;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.integrity-bar {
+  color: var(--danger);
+}
+
+.enemy-block,
+.player-block {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--info);
+}
+
+.intent {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--warn);
+}
+
+.intent.stalled {
+  color: var(--muted);
+}
+
+/* --- Middle: selected card, incoming damage, or the result --- */
+
+.combat-middle {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.incoming {
+  margin: 0;
+  text-align: center;
+  color: var(--warn);
+  font-size: 0.85rem;
+}
+
+.result {
+  align-items: center;
+}
+
+.selected-card {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.selected-card-face {
+  flex: 0 0 150px;
+  height: 212px;
+}
+
+.selected-card-actions {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.selected-card-actions p {
+  margin: 0;
+}
+
+.chain-note {
+  color: var(--info);
+  font-weight: 700;
+  font-family: var(--heading-font);
+}
+
+.warn {
+  color: var(--danger);
+  font-size: 0.85rem;
+}
+
+/* --- Player bar --- */
+
+.player-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.opsec-bar {
+  flex: 1 1 auto;
+  height: 20px;
+  color: var(--accent);
+}
+
+.opsec-bar .bar-label {
+  line-height: 18px;
+  font-size: 0.75rem;
+}
+
+.cycles {
+  font-weight: 800;
+  color: var(--warn);
+  white-space: nowrap;
+}
+
+.chain-count {
+  font-family: var(--heading-font);
+  font-size: 0.8rem;
+  color: var(--info);
+  white-space: nowrap;
+}
+
+/* --- Hand fan (positions are set inline by Hand.tsx) --- */
+
+.hand-fan {
+  position: relative;
+  flex: 0 0 172px;
+  margin-top: 8px;
+  touch-action: none; /* sliding across the fan selects cards instead of scrolling */
+}
+
+.hand-card {
+  position: absolute;
+  bottom: 10px;
+  width: 96px; /* keep in sync with CARD_WIDTH in Hand.tsx */
+  height: 140px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  transform-origin: 50% 120%;
+  transition: transform 0.15s ease-out;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.hand-card.selected .card-face {
+  box-shadow: 0 0 0 3px var(--accent);
+}
+
+.hand-card.unplayable .card-face {
+  filter: grayscale(0.7) brightness(0.6);
+}
+
+/* --- Footer --- */
+
+.combat-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+/* --- Guided first fight --- */
+
+.tutorial-tip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--panel-raised);
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.tutorial-tip p {
+  margin: 0;
+}
+
+button.link-like {
+  align-self: flex-end;
+  min-height: 44px;
+  padding: 0 8px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
