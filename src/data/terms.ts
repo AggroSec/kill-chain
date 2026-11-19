@@ -68,6 +68,12 @@ export const TERMS = {
 
   // --- Fight screen (Milestone 4) ---
   play: 'Play',
+  cost: 'Cost',
+  upgraded: 'Upgraded',
+  newEffect: 'New effect',
+  take: 'Take',
+  buy: 'Buy',
+  choose: 'Choose',
   tapEnemy: 'Tap an enemy to target it',
   notEnoughCycles: 'Not enough Cycles',
   menu: 'Menu',

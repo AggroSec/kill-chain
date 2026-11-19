@@ -52,8 +52,10 @@
 
 .card-name {
   font-weight: 650;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   line-height: 1.15;
+  overflow-wrap: anywhere;
+  hyphens: auto;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { diffWords, hasChanges, numberChanges } from './textDiff';
+import { diffWords, hasChanges } from './textDiff';
 
 describe('diffWords', () => {
   it('marks a replaced number with its old value', () => {
@@ -20,12 +20,5 @@ describe('diffWords', () => {
 
   it('finds no changes in identical text', () => {
     expect(hasChanges(diffWords('Apply 3 Vuln.', 'Apply 3 Vuln.'))).toBe(false);
-  });
-});
-
-describe('numberChanges', () => {
-  it('summarises each number change with the word after it', () => {
-    expect(numberChanges(diffWords('Deal 8 damage. Apply 2 Vuln.', 'Deal 11 damage. Apply 3 Vuln.'))).toEqual(['+3 damage', '+1 Vuln']);
-    expect(numberChanges(diffWords('Lower Alert by 3.', 'Lower Alert by 4.'))).toEqual(['+1']);
   });
 });

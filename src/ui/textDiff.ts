@@ -69,27 +69,3 @@ export function diffWords(oldText: string, newText: string): DiffSegment[] {
 export function hasChanges(segments: readonly DiffSegment[]): boolean {
   return segments.some((s) => s.kind !== 'same');
 }
-
-/** Leading whole number of a word, e.g. "11" from "11," (null if it doesn't start with one). */
-function leadingNumber(word: string): number | null {
-  const match = /^(\d+)/.exec(word);
-  return match === null ? null : Number(match[1]);
-}
-
-/**
- * Short summaries of number changes for a badge, e.g. ["+3 damage", "+1 Vuln"].
- * Each changed number is labeled with the word after it.
- */
-export function numberChanges(segments: readonly DiffSegment[]): string[] {
-  const changes: string[] = [];
-  segments.forEach((segment, index) => {
-    if (segment.kind !== 'changed' || segment.from === undefined) return;
-    const before = leadingNumber(segment.from);
-    const after = leadingNumber(segment.text);
-    if (before === null || after === null || before === after) return;
-    const next = segments[index + 1];
-    const label = next === undefined ? '' : ` ${next.text.replace(/[.,:]$/, '')}`;
-    changes.push(`${after > before ? '+' : '−'}${Math.abs(after - before)}${label}`);
-  });
-  return changes;
-}

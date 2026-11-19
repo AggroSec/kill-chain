@@ -1,6 +1,7 @@
 /** Intel event: the scene text and its choices. Some choices need you to pick a card first. */
 import { useState } from 'react';
 import { runEffectsNeedDeckIndex } from '../../engine';
+import { TERMS } from '../../data/terms';
 import { DeckPicker } from './DeckPicker';
 import type { PhaseProps } from './phaseProps';
 
@@ -17,6 +18,7 @@ export function IntelView({ run, content, act, can }: PhaseProps) {
         title={event.choices[index]?.label ?? event.title}
         deck={run.deck}
         content={content}
+        confirmLabel={TERMS.choose}
         canPick={(deckIndex) => can({ type: 'EVENT_CHOICE', index, deckIndex })}
         onPick={(deckIndex) => {
           setPickingFor(null);

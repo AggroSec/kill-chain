@@ -170,3 +170,36 @@ a.link-button {
   color: var(--text);
   text-decoration: none;
 }
+
+/* --- Card pickers (Weaponize, Go Dark, Wipe, Intel) --- */
+
+.picker {
+  padding-bottom: 88px; /* room for the confirm bar */
+}
+
+.picker-slot {
+  display: flex;
+  flex-direction: column;
+}
+
+.picker-confirm {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  padding: 12px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  background: linear-gradient(transparent, var(--bg) 30%);
+}
+
+.picker-confirm button {
+  width: 100%;
+  max-width: 480px;
+}
+
+.loot-crypto {
+  color: var(--warn);
+  font-weight: 700;
+}

@@ -1,6 +1,6 @@
 /** Safehouse: Lay Low, Weaponize (upgrade a card) or Go Dark (Wipe a card). One per visit. */
 import { useState } from 'react';
-import { canUpgrade, layLowAmount, upgradedId } from '../../engine';
+import { canUpgrade, layLowAmount } from '../../engine';
 import { NODE_NAMES, TERMS } from '../../data/terms';
 import { DeckPicker } from './DeckPicker';
 import type { PhaseProps } from './phaseProps';
@@ -18,7 +18,9 @@ export function SafehouseView({ run, content, act, can }: PhaseProps) {
     const isWeaponize = picking === 'weaponize';
     return (
       <DeckPicker
-        title={isWeaponize ? `${TERMS.weaponize}: tap a card (shown as${TERMS.upgradedSuffix})` : TERMS.goDark}
+        title={isWeaponize ? TERMS.weaponize : TERMS.goDark}
+        confirmLabel={isWeaponize ? TERMS.weaponize : TERMS.wipe}
+        showUpgrades={isWeaponize}
         deck={run.deck}
         content={content}
         canPick={(i) => (isWeaponize ? can({ type: 'WEAPONIZE', deckIndex: i }) : can({ type: 'GO_DARK', deckIndex: i }))}
@@ -27,7 +29,6 @@ export function SafehouseView({ run, content, act, can }: PhaseProps) {
           act(isWeaponize ? { type: 'WEAPONIZE', deckIndex: i } : { type: 'GO_DARK', deckIndex: i });
         }}
         onClose={() => setPicking(null)}
-        {...(isWeaponize ? { displayAs: (id: string) => (canUpgrade(content.cards, id) ? upgradedId(id) : id) } : {})}
       />
     );
   }
