@@ -255,3 +255,34 @@
   align-items: center;
   gap: 8px;
 }
+
+/* --- Guided first fight --- */
+
+.tutorial-tip {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--panel-raised);
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.tutorial-tip p {
+  margin: 0;
+}
+
+button.link-like {
+  align-self: flex-end;
+  min-height: 44px;
+  padding: 0 8px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  cursor: pointer;
+}

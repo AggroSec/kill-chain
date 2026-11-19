@@ -13,12 +13,27 @@ interface MainMenuProps {
   onGlossary: () => void;
   onSettings: () => void;
   onCredits: () => void;
+  onHowToPlay: () => void;
+  /** Present on first launch: the guided-fight offer is shown, and this hides it. */
+  onDeclineTutorial?: () => void;
 }
 
-export function MainMenu({ classId, onClassChange, onStartRun, onContinue, onPractice, onRunLogs, onGlossary, onSettings, onCredits }: MainMenuProps) {
+export function MainMenu({ classId, onClassChange, onStartRun, onContinue, onPractice, onRunLogs, onGlossary, onSettings, onCredits, onHowToPlay, onDeclineTutorial }: MainMenuProps) {
   return (
     <main className="screen setup">
       <h1>{TERMS.gameTitle}</h1>
+
+      {onDeclineTutorial !== undefined && (
+        <section className="panel tutorial-offer">
+          <p>{TERMS.tutorialOffer}</p>
+          <button type="button" className="primary" onClick={onHowToPlay}>
+            {TERMS.startTutorial}
+          </button>
+          <button type="button" className="secondary" onClick={onDeclineTutorial}>
+            {TERMS.noThanks}
+          </button>
+        </section>
+      )}
 
       {onContinue !== undefined && (
         <button type="button" className="primary" onClick={onContinue}>
@@ -59,6 +74,9 @@ export function MainMenu({ classId, onClassChange, onStartRun, onContinue, onPra
           {TERMS.credits}
         </button>
       </div>
+      <button type="button" className="secondary" onClick={onHowToPlay}>
+        {TERMS.howToPlay}
+      </button>
     </main>
   );
 }

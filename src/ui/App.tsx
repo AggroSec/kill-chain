@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { combatReducer, runReducer, startCombat, startRun } from '../engine';
 import type { CombatAction, CombatState, RunAction } from '../engine';
+import { currentTip, startTutorial, TUTORIAL_SEED } from '../data/tutorial';
 import { CLASSES, CONTENT, ENCOUNTERS, starterFight } from '../data/content';
 import { CLASS_LIST } from '../data/classes';
 import { ENCOUNTER_LIST } from '../data/encounters';
@@ -45,6 +46,7 @@ type Screen =
   | { kind: 'glossary' }
   | { kind: 'settings' }
   | { kind: 'credits' }
+  | { kind: 'tutorial'; state: CombatState; selectedCardId: string | null }
   | { kind: 'practice'; fight: Fight }
   | { kind: 'run'; saved: SavedRun };
 
@@ -87,6 +89,19 @@ export function App() {
     applyTheme(theme);
   }
 
+  /** Marks the guided fight as offered, so the menu stops suggesting it. */
+  function markTutorialOffered() {
+    if (settings.tutorialOffered) return;
+    const next = { ...settings, tutorialOffered: true };
+    setSettings(next);
+    saveSettings(next);
+  }
+
+  function startGuidedFight() {
+    markTutorialOffered();
+    setScreen({ kind: 'tutorial', state: startTutorial(), selectedCardId: null });
+  }
+
   function toMenu() {
     setPaused(false);
     setScreen({ kind: 'menu' });
@@ -123,7 +138,7 @@ export function App() {
   }
 
   const body = renderScreen();
-  const inGame = screen.kind === 'run' || screen.kind === 'practice';
+  const inGame = screen.kind === 'run' || screen.kind === 'practice' || screen.kind === 'tutorial';
   return (
     <>
       {body}
@@ -156,6 +171,9 @@ export function App() {
             onGlossary={() => setScreen({ kind: 'glossary' })}
             onSettings={() => setScreen({ kind: 'settings' })}
             onCredits={() => setScreen({ kind: 'credits' })}
+            onHowToPlay={startGuidedFight}
+            // First launch only: offer the guided fight until it's been played or declined.
+            {...(!settings.tutorialOffered && savedRun === null ? { onDeclineTutorial: markTutorialOffered } : {})}
           />
         );
       }
@@ -203,6 +221,25 @@ export function App() {
             onNewFight={() => setScreen({ kind: 'practiceSetup' })}
           />
         );
+      case 'tutorial': {
+        const { state, selectedCardId } = screen;
+        const tip = currentTip({ state, selectedCardId });
+        return (
+          <CombatView
+            state={state}
+            seed={TUTORIAL_SEED}
+            content={CONTENT}
+            onAction={(action) =>
+              setScreen({ kind: 'tutorial', state: combatReducer(state, action, CONTENT), selectedCardId: null })
+            }
+            onMenu={() => setPaused(true)}
+            onNewFight={toMenu}
+            newFightLabel={TERMS.done}
+            tip={{ text: tip?.text ?? TERMS.tutorialDone, onSkip: toMenu }}
+            onSelectionChange={(cardId) => setScreen({ kind: 'tutorial', state, selectedCardId: cardId })}
+          />
+        );
+      }
       case 'run':
         return (
           <RunView

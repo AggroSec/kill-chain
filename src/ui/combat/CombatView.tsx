@@ -28,6 +28,12 @@ interface CombatViewProps {
   onMenu: () => void;
   /** Shown when the fight is over (practice fights only; runs move on by themselves). */
   onNewFight: () => void;
+  /** Label for that button. Defaults to "New Fight". */
+  newFightLabel?: string;
+  /** Guided first fight: a tip shown above the hand, with a way to skip. */
+  tip?: { text: string; onSkip: () => void };
+  /** Tells the guided first fight which card is selected. */
+  onSelectionChange?: (cardId: string | null) => void;
 }
 
 const OUTCOME_LABEL = {
@@ -36,9 +42,14 @@ const OUTCOME_LABEL = {
   turnCap: TERMS.turnCap,
 } as const;
 
-export function CombatView({ state, seed, content, onAction, onMenu, onNewFight }: CombatViewProps) {
+export function CombatView({ state, seed, content, onAction, onMenu, onNewFight, newFightLabel, tip, onSelectionChange }: CombatViewProps) {
   const { player } = state;
-  const [selected, setSelected] = useState<number | null>(null);
+  const [selected, setSelectedIndex] = useState<number | null>(null);
+
+  function setSelected(index: number | null) {
+    setSelectedIndex(index);
+    onSelectionChange?.(index === null ? null : (player.hand[index]?.defId ?? null));
+  }
   const [inspecting, setInspecting] = useState<number | null>(null);
 
   // A selection can go stale (the hand changed); treat it as nothing selected.
@@ -118,7 +129,7 @@ export function CombatView({ state, seed, content, onAction, onMenu, onNewFight 
           <section className="panel result">
             <h2>{OUTCOME_LABEL[state.outcome as keyof typeof OUTCOME_LABEL]}</h2>
             <button type="button" className="primary" onClick={onNewFight}>
-              {TERMS.newFight}
+              {newFightLabel ?? TERMS.newFight}
             </button>
           </section>
         ) : selectedIndex !== null ? (
@@ -139,6 +150,17 @@ export function CombatView({ state, seed, content, onAction, onMenu, onNewFight 
           )
         )}
       </div>
+
+      {tip !== undefined && (
+        <aside className="tutorial-tip" aria-live="polite">
+          <p>{tip.text}</p>
+          {state.outcome === 'ongoing' && (
+            <button type="button" className="link-like" onClick={tip.onSkip}>
+              {TERMS.skipTutorial}
+            </button>
+          )}
+        </aside>
+      )}
 
       <section className="player-bar">
         <span className="bar opsec-bar" aria-label={`${TERMS.opsec} ${player.opsec} of ${player.maxOpsec}`}>

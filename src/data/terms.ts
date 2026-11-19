@@ -90,6 +90,11 @@ export const TERMS = {
   quitPractice: 'Quit to menu',
   savedNote: 'Your run is saved after every move.',
   howToPlay: 'How to Play',
+  skipTutorial: 'Skip tutorial',
+  tutorialOffer: 'New here? Play a short guided fight to learn the basics.',
+  startTutorial: 'Play the guided fight',
+  noThanks: 'No thanks',
+  tutorialDone: 'That is the basics. The Glossary in the Menu explains every term. Good luck out there, Operator.',
 
   // --- Run logs (bug reports) ---
   runLog: 'Run log',
