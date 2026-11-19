@@ -66,6 +66,14 @@ export const TERMS = {
   noUpgrades: 'No cards can be upgraded.',
   chooseNext: 'Choose your next target',
 
+  // --- Fight screen (Milestone 4) ---
+  play: 'Play',
+  tapEnemy: 'Tap an enemy to target it',
+  notEnoughCycles: 'Not enough Cycles',
+  menu: 'Menu',
+  hand: 'Hand',
+  incoming: 'Incoming',
+
   // --- Run logs (bug reports) ---
   runLog: 'Run log',
   runLogs: 'Run Logs',

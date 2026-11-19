@@ -39,7 +39,7 @@ export function DarkWebView({ run, content, act, can }: PhaseProps) {
             <div key={item.id} className="shop-item">
               <button
                 type="button"
-                className={`card card-${def.type}`}
+                className="card-button"
                 disabled={!can({ type: 'BUY_CARD', index })}
                 onClick={() => act({ type: 'BUY_CARD', index })}
               >

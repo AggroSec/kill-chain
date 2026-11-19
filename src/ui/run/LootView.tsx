@@ -26,7 +26,7 @@ export function LootView({ run, content, act }: PhaseProps) {
           const def = content.cards[cardId];
           if (def === undefined) return null;
           return (
-            <button key={cardId} type="button" className={`card card-${def.type}`} onClick={() => act({ type: 'PICK_LOOT_CARD', index })}>
+            <button key={cardId} type="button" className="card-button" onClick={() => act({ type: 'PICK_LOOT_CARD', index })}>
               <CardFace def={def} content={content} />
             </button>
           );

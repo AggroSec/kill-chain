@@ -37,7 +37,7 @@ export function DeckPicker({ title, deck, content, canPick = () => true, onPick,
               // Duplicate card ids are common, so the position is part of the key.
               key={`${cardId}-${index}`}
               type="button"
-              className={`card card-${def.type}`}
+              className="card-button"
               disabled={onPick !== undefined && !pickable}
               onClick={() => pickable && onPick(index)}
             >

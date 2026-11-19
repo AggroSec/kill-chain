@@ -20,7 +20,7 @@ export function RunLogsScreen({ current, onBack }: RunLogsScreenProps) {
   const history = loadLogHistory();
   const empty = current === null && history.length === 0;
   return (
-    <main className="combat setup">
+    <main className="screen setup">
       <div className="topbar">
         <h1>{TERMS.runLogs}</h1>
         <button type="button" className="secondary small-button" onClick={onBack}>

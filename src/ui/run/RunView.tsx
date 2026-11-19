@@ -5,7 +5,7 @@
 import { runReducer } from '../../engine';
 import type { RunAction, RunContent, RunState } from '../../engine';
 import { TERMS } from '../../data/terms';
-import { CombatView } from '../CombatView';
+import { CombatView } from '../combat/CombatView';
 import { RunLogPanel } from '../RunLogPanel';
 import { DarkWebView } from './DarkWebView';
 import { IntelView } from './IntelView';
@@ -39,7 +39,7 @@ export function RunView({ run, seed, content, onAction, onMenu, onNewRun, log }:
   if (run.outcome !== 'ongoing') {
     const won = run.outcome === 'won';
     return (
-      <main className="combat">
+      <main className="screen">
         <RunHeader run={run} seed={seed} content={content} onMenu={onMenu} />
         <section className={won ? 'panel run-end won' : 'panel run-end lost'}>
           <h2>{won ? TERMS.runWon : TERMS.runLost}</h2>
@@ -63,13 +63,14 @@ export function RunView({ run, seed, content, onAction, onMenu, onNewRun, log }:
         seed={seed}
         content={content}
         onAction={(action) => onAction({ type: 'COMBAT', action })}
+        onMenu={onMenu}
         onNewFight={onMenu}
       />
     );
   }
 
   return (
-    <main className="combat">
+    <main className="screen">
       <RunHeader run={run} seed={seed} content={content} onMenu={onMenu} />
       {phase.kind === 'map' && (
         <MapView

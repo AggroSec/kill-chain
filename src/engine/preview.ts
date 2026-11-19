@@ -2,12 +2,14 @@
  * Read-only predictions for the UI and bots: what each enemy will
  * actually do next turn, with every modifier (Alert, Hardened, Throttled) applied.
  */
-import { enemyHitDamage } from './damage';
+import { extendsChain } from './chain';
+import { enemyHitDamage, operatorBlock } from './damage';
+import { CHAIN_DAMAGE_PER_STACK } from './rules';
 import { isEnemyAlive } from './effects';
 import { getEnemyDef } from './enemyTurn';
 import { getMove } from './intents';
 import { CORE_STATUS, getStacks } from './statuses';
-import type { CombatState, ContentRegistry, EnemyEffect } from './types';
+import type { CardDef, CardEffect, CombatState, ContentRegistry, EnemyEffect } from './types';
 
 export interface IntentPreview {
   moveName: string;
@@ -44,4 +46,34 @@ export function incomingDamage(state: CombatState, content: ContentRegistry): nu
     }
   });
   return total;
+}
+
+/** The Chain count a card would resolve at if it were played right now. */
+export function chainIfPlayed(state: CombatState, def: CardDef): number {
+  return extendsChain(state.chain, def.tactic) ? state.chain.count + 1 : 0;
+}
+
+function effectAtChain(effect: CardEffect, chainCount: number): CardEffect {
+  switch (effect.kind) {
+    case 'damage':
+      return { ...effect, amount: effect.amount + chainCount * (CHAIN_DAMAGE_PER_STACK + (effect.bonusPerChain ?? 0)) };
+    case 'block':
+      return { ...effect, amount: operatorBlock(effect.amount, chainCount) };
+    case 'ifAlert':
+      return { ...effect, then: effect.then.map((inner) => effectAtChain(inner, chainCount)) };
+    default:
+      return effect;
+  }
+}
+
+/**
+ * A copy of the card with Chain already added to its damage and block
+ * numbers, for display ("Deal 10 damage" at Chain 2 instead of "Deal 6").
+ * Display only: combat still applies the bonus itself when the card resolves.
+ * Exploit's bonus is added once to the total, so it can't be shown per stack
+ * and is left as is.
+ */
+export function cardAtChain(def: CardDef, chainCount: number): CardDef {
+  if (chainCount <= 0) return def;
+  return { ...def, effects: def.effects.map((effect) => effectAtChain(effect, chainCount)) };
 }

@@ -14,7 +14,7 @@ interface MainMenuProps {
 
 export function MainMenu({ classId, onClassChange, onStartRun, onContinue, onPractice, onRunLogs }: MainMenuProps) {
   return (
-    <main className="combat setup">
+    <main className="screen setup">
       <h1>{TERMS.gameTitle}</h1>
 
       {onContinue !== undefined && (

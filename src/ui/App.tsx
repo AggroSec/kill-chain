@@ -9,7 +9,7 @@ import type { CombatAction, CombatState, RunAction } from '../engine';
 import { CLASSES, CONTENT, ENCOUNTERS, starterFight } from '../data/content';
 import { CLASS_LIST } from '../data/classes';
 import { ENCOUNTER_LIST } from '../data/encounters';
-import { CombatView } from './CombatView';
+import { CombatView } from './combat/CombatView';
 import { FightSetup } from './FightSetup';
 import { MainMenu } from './MainMenu';
 import { RunLogsScreen, runLabel } from './RunLogsScreen';
@@ -132,6 +132,7 @@ export function App() {
           seed={screen.fight.seed}
           content={CONTENT}
           onAction={practiceAction}
+          onMenu={() => setScreen({ kind: 'menu' })}
           onNewFight={() => setScreen({ kind: 'practiceSetup' })}
         />
       );

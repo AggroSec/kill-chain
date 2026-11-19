@@ -103,3 +103,39 @@ export function describeIntent(effects: readonly EnemyEffect[], content: Content
     })
     .join(' + ');
 }
+
+/** Glyph for each kind of enemy action, for the compact intent line. */
+const INTENT_GLYPHS: Readonly<Record<EnemyEffect['kind'], string>> = {
+  attack: '⚔',
+  block: '⛨',
+  raiseAlert: '⚠',
+  cleanse: '✚',
+  buffSelf: '▲',
+  buffAllies: '▲',
+  removeImplants: '✂',
+};
+
+/**
+ * Very short intent pieces for the small enemy panels, e.g. ["⚔ 3×3", "⚠ +2"].
+ * The full sentence (describeIntent) is in the enemy's inspect panel.
+ */
+export function shortIntent(effects: readonly EnemyEffect[], content: ContentRegistry): string[] {
+  return effects.map((effect): string => {
+    const glyph = INTENT_GLYPHS[effect.kind];
+    switch (effect.kind) {
+      case 'attack':
+        return effect.hits !== undefined && effect.hits > 1 ? `${glyph} ${effect.damage}×${effect.hits}` : `${glyph} ${effect.damage}`;
+      case 'block':
+        return `${glyph} ${effect.amount}`;
+      case 'raiseAlert':
+        return `${glyph} +${effect.amount}`;
+      case 'cleanse':
+        return `${glyph} Cleanse`;
+      case 'buffSelf':
+      case 'buffAllies':
+        return `${glyph} ${statusName(content, effect.status)}`;
+      case 'removeImplants':
+        return `${glyph} ${KEYWORD_NAMES.implant}`;
+    }
+  });
+}

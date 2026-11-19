@@ -31,3 +31,13 @@ export function tacticStep(tactic: Tactic): number {
 export function tacticLabel(tactic: Tactic): string {
   return `${tacticStep(tactic)} · ${TACTIC_NAMES[tactic]}`;
 }
+
+/**
+ * Hue (0-360) for a tactic's card frame. Colors run from blue (step 1,
+ * Reconnaissance) through purple to red (step 14, Impact), so a Chain reads
+ * as a color gradient. Each theme sets the saturation and lightness.
+ */
+export function tacticHue(tactic: Tactic): number {
+  const step = tacticStep(tactic); // 1-14
+  return Math.round(200 + ((step - 1) / 13) * 160) % 360;
+}

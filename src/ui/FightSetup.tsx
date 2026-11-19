@@ -19,7 +19,7 @@ function encounterLabel(enemyIds: readonly string[]): string {
 export function FightSetup({ classId, encounterId, onClassChange, onEncounterChange, onStart }: FightSetupProps) {
   const selectedClass = CLASS_LIST.find((c) => c.id === classId);
   return (
-    <main className="combat setup">
+    <main className="screen setup">
       <h1>{TERMS.gameTitle}</h1>
 
       <label className="field">
