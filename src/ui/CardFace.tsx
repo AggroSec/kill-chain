@@ -13,6 +13,7 @@
  */
 import { useState } from 'react';
 import type { CSSProperties, ReactNode } from 'react';
+import { baseCardId, isUpgraded } from '../engine';
 import type { CardDef, ContentRegistry } from '../engine';
 import { RARITY_NAMES, TERMS } from '../data/terms';
 import { TACTIC_NAMES, tacticHue, tacticStep } from '../data/tactics';
@@ -75,15 +76,21 @@ export function CardFace({ def, content, size = 'full', compareTo, diffStyle = '
   const showOld = diffStyle === 'upgrade';
   const costChanged = compareTo !== undefined && compareTo.cost !== def.cost;
   const style = { '--tactic-hue': tacticHue(def.tactic) } as CSSProperties;
+  // A v2 shows its base name plus a "v2" tag that is never cut off by a long name.
+  const upgraded = isUpgraded(def.id);
+  const name = upgraded ? (content.cards[baseCardId(def.id)]?.name ?? def.name) : def.name;
 
   return (
-    <span className={`card-face card-${size} card-${def.type}`} style={style}>
+    <span className={`card-face card-${size} card-${def.type}${upgraded ? ' upgraded' : ''}`} style={style}>
       <span className="card-head">
         <span className={costChanged ? 'card-cost changed' : 'card-cost'} aria-label={`${def.cost} ${TERMS.cycles}`}>
           {costChanged && showOld && <span className="diff-old">{compareTo.cost}→</span>}
           {def.cost}
         </span>
-        <span className="card-name">{def.name}</span>
+        <span className="card-name">{name}</span>
+        {upgraded && (
+          <span className="card-v2">{TERMS.upgradedSuffix.trim()}</span>
+        )}
       </span>
       <CardArt def={def} />
       <span className={extendsChain ? 'card-tactic chains' : 'card-tactic'}>

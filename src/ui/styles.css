@@ -163,7 +163,8 @@ h3 {
   z-index: 10;
   overflow-y: auto;
   border-radius: 0;
-  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  /* Extra room so the last row clears phone browser toolbars. */
+  padding-bottom: calc(32px + env(safe-area-inset-bottom));
 }
 
 .panel p {
