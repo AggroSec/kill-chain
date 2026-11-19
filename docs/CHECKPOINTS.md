@@ -232,3 +232,75 @@ You made all the design decisions in this milestone. Implementation choices are 
 In headless Chrome at 360px, 390px and 430px: the menu, map, Intel, Loot, fight-in-run, Dark Web, Wipe picker, Safehouse and Weaponize picker. Two fixes came out of this:
 - The boss node is now centered.
 - Weaponize shows each card's v2, and Lay Low says "up to".
+
+## Milestone 4: Playable phone UI
+
+**Date:** 2026-11-19 · **Branch:** `milestone-4-phone-ui`
+
+AggroSec made the design choices in #17. The v2 comparison is #14 and the help content is #9.
+
+### What was built
+
+- **A touch-first fight screen.**
+  - An overlapping hand fan that fits 10 cards.
+  - Tap a card to select it, then tap an enemy or Play.
+  - Sliding a finger across the fan also selects.
+- **The selected card shows its real numbers at the current Chain** (e.g. "Gain **9** Block" at Chain 2), plus short explanations of its keywords and statuses.
+- **Compact enemy panels** in a row of 3, with Integrity bars, short intents and status chips. Tap an enemy for full details.
+- **Card art system.**
+  - Frames are colored by tactic: blue at step 1, through purple, to red at step 14.
+  - Placeholder art is a game-icons.net icon per tactic.
+  - Real art needs only an image file and an `art` field.
+- **Weaponize shows each card as its v2,** with changes highlighted ("Deal 6 → 9") and a badge ("v2: −1 Cost") (#14).
+- **Card picks are tap-then-confirm** everywhere: Loot, Dark Web, Safehouse and Intel.
+- **A Menu button in fights and on run screens.** It holds Resume, Glossary, Settings, and Save and quit.
+- **Glossary** of every themed term, kept short.
+- **Settings** with 3 themes: Green terminal, Amber terminal and Soft dark.
+- **Credits screen.**
+- **A guided first fight**, offered once on first launch. It can be skipped and replayed from How to Play.
+- **Replays show status changes.**
+
+### What to playtest on a phone
+
+After merging, open **https://aggrosec.github.io/kill-chain/**. Your saved settings are new, so the guided fight offer will show once.
+
+1. **Guided fight:** do the tips make sense in order? Is anything missing for someone new to the game?
+2. **Hand:** select and play cards with taps, then try sliding a finger across the fan. Does a big hand (Burner Phone, draw cards) stay usable?
+3. **Targeting:** select an attack, then tap an enemy. Does the pulsing outline make it clear what to tap?
+4. **Chain numbers:** play cards in increasing step order. Does the selected card's highlighted number match what happens?
+5. **Weaponize:** can you spot cost cuts (−1 Cost) at a glance now?
+6. **Themes:** try all three in bright light and in the dark.
+7. **Menu mid-fight:** open the Glossary in the middle of a fight, then come back.
+
+### Known issues
+
+- With 10 cards on a 360px phone, each card shows about 27px, under the 44px tap-target rule. Slide-to-select is the workaround. Larger phones or fewer cards are fine.
+- The map, run header, Safehouse, Dark Web and Intel screens use the new card and button styles, but their layouts are the M3 ones, cleaned up. They work, but aren't redesigned.
+- No animations yet (Milestone 6).
+- The Exploit Chain bonus isn't shown on the card, since it's added to the total rather than per Vuln stack.
+
+### Balance numbers
+
+No rule or content numbers changed in this milestone. 2,000 runs per class per bot:
+
+| Bot | Class | Win | Avg floor reached | Turn caps | Stuck | Suspected infinites |
+| --- | --- | --- | --- | --- | --- | --- |
+| random | Social Engineer | 0% | 7.4 | 0 | 0 | 0 |
+| random | Exploit Dev | 0% | 7.1 | 0 | 0 | 0 |
+| greedy | Social Engineer | 45% | 12.9 | 1 | 0 | 0 |
+| greedy | Exploit Dev | 45% | 12.4 | 0 | 0 | 0 |
+| chain | Social Engineer | 45% | 12.9 | 3 | 0 | 0 |
+| chain | Exploit Dev | 46% | 12.3 | 0 | 0 | 0 |
+
+### Layouts checked
+
+360, 390 and 430px:
+- fight against the 3-enemy boss team, with a card selected and a Chain preview
+- enemy sheet
+- pause menu
+- Weaponize picker
+- Dark Web, Loot, Intel and map
+- glossary, settings and the main menu with the tutorial offer
+- guided fight steps
+
+A unit test checks that the hand fan keeps 1–10 cards on screen at all three widths.

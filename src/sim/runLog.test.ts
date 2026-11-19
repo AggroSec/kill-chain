@@ -114,6 +114,12 @@ describe('replayReport', () => {
     expect(report).not.toContain('rejected');
   });
 
+  it('shows status changes, so debuff-only cards are not "no visible change"', () => {
+    const { final, actions } = recordRun('social-engineer', 5);
+    const report = replayReport({ build: 'test', classId: 'social-engineer', seed: 5, result: final.outcome, actions }, CONTENT, 'test');
+    expect(report).toMatch(/\+\d+ Throttled/);
+  });
+
   it('warns when the log comes from a different build', () => {
     const report = replayReport({ build: 'old', classId: 'exploit-dev', seed: 5, result: '', actions: [] }, CONTENT, 'new');
     expect(report).toContain('WARNING');

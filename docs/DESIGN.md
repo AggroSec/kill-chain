@@ -120,3 +120,14 @@ Content and numbers were approved in #6. Balance changes since then are in [`BAL
   - The Patch Cycle has 72 Integrity.
   - Exploit Dev cards apply +1 Vuln, have −1 Noisy and deal +1 Exploit damage per stack.
   - With Chain boosting block, the IR Team got +10% Integrity back: Forensics Analyst 41, Incident Commander 85, Threat Hunter 47.
+
+## Phone UI (Milestone 4, decided by AggroSec in #17)
+
+- **Hand:** an overlapping fan. Cards overlap more as the hand grows, so 10 cards fit on a 360px screen without scrolling. Sliding a finger across the fan also selects the card under it. That's optional; taps always work.
+- **Playing a card:** tap a card to select it. It lifts, and its full text shows above the hand with Chain-boosted numbers and short explanations of its keywords and statuses. Then tap an enemy, or tap Play for cards with no target (or when only one enemy is left). Tap the card again, or Cancel, to put it back.
+- **Enemies:** a row of up to 3 compact panels showing Integrity bar, Block, a short intent (⚔ attack, ⛨ block, ⚠ Alert) and status chips. Tap an enemy with no card selected to see its full details.
+- **Picking cards** (Loot, Dark Web, Weaponize, Go Dark, Wipe, Intel) is select-then-confirm, like playing a card.
+- **Weaponize shows each card as its v2,** with changes highlighted ("Deal 6 → 9") and a badge ("v2: −1 Cost") (#14).
+- **Card frames are colored by tactic:** step 1 is blue, shading through purple to red at step 14, so a Chain reads as a color gradient. Placeholder art is one icon per tactic until real art exists.
+- **Themes:** Green terminal (default), Amber terminal and Soft dark, switched in Settings.
+- **Help (#9):** a glossary reachable from the main menu and the in-game Menu, plus a guided first fight. The fight is offered once on first launch, can be skipped, and can be replayed from How to Play.

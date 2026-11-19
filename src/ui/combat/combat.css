@@ -221,6 +221,7 @@
   position: relative;
   flex: 0 0 172px;
   margin-top: 8px;
+  touch-action: none; /* sliding across the fan selects cards instead of scrolling */
 }
 
 .hand-card {

@@ -52,7 +52,17 @@ function turnLines(combat: CombatState, content: RunContent): string[] {
   return lines;
 }
 
-/** What a card play or enemy turn changed: enemy Integrity, OpSec, Block, Alert, Chain. */
+/** Status stack changes, e.g. ["+2 Throttled", "-1 Stalled"]. */
+function statusDiff(before: Readonly<Record<string, number>>, after: Readonly<Record<string, number>>, content: RunContent): string[] {
+  const parts: string[] = [];
+  for (const id of new Set([...Object.keys(before), ...Object.keys(after)])) {
+    const delta = (after[id] ?? 0) - (before[id] ?? 0);
+    if (delta !== 0) parts.push(`${delta > 0 ? '+' : ''}${delta} ${content.statuses[id]?.name ?? id}`);
+  }
+  return parts;
+}
+
+/** What a card play or enemy turn changed: enemy Integrity and statuses, OpSec, Block, Alert, Chain. */
 function combatDiff(before: CombatState, after: CombatState, content: RunContent): string {
   const parts: string[] = [];
   after.enemies.forEach((enemy, index) => {
@@ -63,9 +73,13 @@ function combatDiff(before: CombatState, after: CombatState, content: RunContent
       parts.push(`${enemyName(content, after, index)} ${old.integrity}->${enemy.integrity}${down}`);
     }
     if (old.block !== enemy.block && enemy.integrity > 0) parts.push(`${enemyName(content, after, index)} Block ${old.block}->${enemy.block}`);
+    if (enemy.integrity > 0) {
+      for (const change of statusDiff(old.statuses, enemy.statuses, content)) parts.push(`${enemyName(content, after, index)} ${change}`);
+    }
   });
   if (before.player.opsec !== after.player.opsec) parts.push(`OpSec ${before.player.opsec}->${after.player.opsec}`);
   if (before.player.block !== after.player.block) parts.push(`Block ${before.player.block}->${after.player.block}`);
+  parts.push(...statusDiff(before.player.statuses, after.player.statuses, content));
   if (before.alert !== after.alert) parts.push(`Alert ${before.alert}->${alertText(after.alert)}`);
   if (before.chain.count !== after.chain.count) parts.push(`Chain ${before.chain.count}->${after.chain.count}`);
   return parts.length === 0 ? 'no visible change' : parts.join(', ');

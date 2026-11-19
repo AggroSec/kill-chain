@@ -413,3 +413,17 @@ Runs per class per bot: 2000. Act 1 only; beating the boss wins the run.
 - greedy/social-engineer: mfa-fatigue pick-to-win 33% (below 35%)
 - greedy/social-engineer: help-desk-pretext pick-to-win 33% (below 35%)
 
+
+
+## Milestone 4 (UI only)
+
+No rule or content numbers changed. The engine only gained display helpers (`chainIfPlayed`, `cardAtChain`). The win rates match the Chain block bonus report above:
+
+| Bot | Class | Win | Avg floor reached | Turn caps | Stuck | Suspected infinites |
+| --- | --- | --- | --- | --- | --- | --- |
+| random | Social Engineer | 0% | 7.4 | 0 | 0 | 0 |
+| random | Exploit Dev | 0% | 7.1 | 0 | 0 | 0 |
+| greedy | Social Engineer | 45% | 12.9 | 1 | 0 | 0 |
+| greedy | Exploit Dev | 45% | 12.4 | 0 | 0 | 0 |
+| chain | Social Engineer | 45% | 12.9 | 3 | 0 | 0 |
+| chain | Exploit Dev | 46% | 12.3 | 0 | 0 | 0 |

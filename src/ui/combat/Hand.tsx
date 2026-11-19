@@ -26,7 +26,10 @@ interface HandProps {
   selected: number | null;
   /** Hand indexes of cards that can't be played right now (shown dimmed). */
   unplayable: ReadonlySet<number>;
+  /** Tap: select the card, or put it back if it's already selected. */
   onTap: (handIndex: number) => void;
+  /** Slide: select whichever card is under the finger. */
+  onSlide: (handIndex: number) => void;
 }
 
 /** Tracks an element's width so the fan can be laid out to fit it. */
@@ -59,12 +62,64 @@ export function fanPosition(index: number, count: number, width: number): { left
   return { left: start + index * step, tilt, drop: offset * offset * 10 };
 }
 
-export function Hand({ state, content, selected, unplayable, onTap }: HandProps) {
+/**
+ * Index of the card under x (px from the fan's left edge). Cards to the right
+ * sit on top, so the last card whose span contains x wins.
+ */
+export function cardAt(x: number, count: number, width: number): number | null {
+  let found: number | null = null;
+  for (let i = 0; i < count; i++) {
+    const { left } = fanPosition(i, count, width);
+    if (x >= left && x <= left + CARD_WIDTH) found = i;
+  }
+  return found;
+}
+
+export function Hand({ state, content, selected, unplayable, onTap, onSlide }: HandProps) {
   const [ref, width] = useWidth<HTMLDivElement>();
   const cards = state.player.hand;
+  // Slide-to-select: with 10 cards each one shows only ~27px on a small phone,
+  // so sliding a finger across the fan lifts the card under it. Optional: taps still work.
+  const sliding = useRef<{ startX: number; moved: boolean } | null>(null);
+
+  function pointerX(event: React.PointerEvent<HTMLDivElement>): number {
+    return event.clientX - event.currentTarget.getBoundingClientRect().left;
+  }
+
+  function onPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    sliding.current = { startX: event.clientX, moved: false };
+  }
+
+  function onPointerMove(event: React.PointerEvent<HTMLDivElement>) {
+    const slide = sliding.current;
+    if (slide === null) return;
+    // Ignore small wobbles so an ordinary tap stays a tap.
+    if (!slide.moved && Math.abs(event.clientX - slide.startX) < 8) return;
+    slide.moved = true;
+    const index = cardAt(pointerX(event), cards.length, width);
+    if (index !== null && index !== selected) onSlide(index);
+  }
+
+  function onClickCapture(event: React.MouseEvent) {
+    // A slide that ends on a card shouldn't also count as a tap on it.
+    if (sliding.current?.moved === true) event.stopPropagation();
+    sliding.current = null;
+  }
 
   return (
-    <div className="hand-fan" ref={ref} aria-label={TERMS.hand}>
+    <div
+      className="hand-fan"
+      ref={ref}
+      aria-label={TERMS.hand}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={() => {
+        // Clear after the click (if any) has been handled.
+        setTimeout(() => (sliding.current = null), 0);
+      }}
+      onPointerCancel={() => (sliding.current = null)}
+      onClickCapture={onClickCapture}
+    >
       {cards.map((card, index) => {
         const def = getCardDef(content, card.defId);
         const { left, tilt, drop } = fanPosition(index, cards.length, width);

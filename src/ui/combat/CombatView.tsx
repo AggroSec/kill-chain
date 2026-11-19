@@ -179,7 +179,7 @@ export function CombatView({ state, seed, content, onAction, onMenu, onNewFight,
       </section>
       <StatusChips statuses={player.statuses} content={content} />
 
-      {!over && <Hand state={state} content={content} selected={selectedIndex} unplayable={unplayable} onTap={tapCard} />}
+      {!over && <Hand state={state} content={content} selected={selectedIndex} unplayable={unplayable} onTap={tapCard} onSlide={setSelected} />}
 
       <footer className="combat-footer">
         <span className="muted small piles">
