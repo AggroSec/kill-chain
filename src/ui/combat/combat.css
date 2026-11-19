@@ -136,7 +136,12 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  overflow-y: auto; /* on very short screens, scroll rather than cover the enemies */
+}
+
+/* Sit at the bottom, next to the hand (margin instead of justify-content, so overflow can still scroll). */
+.combat-middle > :first-child {
+  margin-top: auto;
 }
 
 .incoming {
@@ -154,18 +159,30 @@
   display: flex;
   gap: 10px;
   align-items: flex-end;
+  min-height: 0; /* may shrink on short screens: the explanations scroll, the card stays whole */
 }
 
 .selected-card-face {
   flex: 0 0 150px;
-  height: 212px;
+}
+
+/* No art here: the lifted card in the hand already shows it, and short phone screens need the room for the text. */
+.selected-card .selected-card-face .card-art {
+  display: none;
 }
 
 .selected-card-actions {
   flex: 1 1 auto;
+  align-self: stretch;
+  min-height: 0;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.selected-card-actions > :first-child {
+  margin-top: auto; /* bottom-aligned when it fits, scrollable from the top when it doesn't */
 }
 
 .selected-card-actions p {
