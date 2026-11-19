@@ -80,6 +80,17 @@ export const TERMS = {
   hand: 'Hand',
   incoming: 'Incoming',
 
+  resume: 'Resume',
+  glossary: 'Glossary',
+  settings: 'Settings',
+  credits: 'Credits',
+  theme: 'Theme',
+  back: 'Back',
+  quitToMenu: 'Save and quit to menu',
+  quitPractice: 'Quit to menu',
+  savedNote: 'Your run is saved after every move.',
+  howToPlay: 'How to Play',
+
   // --- Run logs (bug reports) ---
   runLog: 'Run log',
   runLogs: 'Run Logs',
@@ -89,6 +100,13 @@ export const TERMS = {
   reportOnGitHub: 'Report on GitHub',
   runLogHelp: 'A run log is your seed plus every move you made, so the run can be replayed exactly. Paste it into a GitHub issue or a message.',
   noRunLogs: 'No runs yet.',
+} as const;
+
+/** Theme names for Settings. */
+export const THEME_NAMES = {
+  green: 'Green terminal',
+  amber: 'Amber terminal',
+  soft: 'Soft dark',
 } as const;
 
 /** Names for each kind of map node. */

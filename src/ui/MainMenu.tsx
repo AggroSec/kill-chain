@@ -10,9 +10,12 @@ interface MainMenuProps {
   onContinue?: () => void;
   onPractice: () => void;
   onRunLogs: () => void;
+  onGlossary: () => void;
+  onSettings: () => void;
+  onCredits: () => void;
 }
 
-export function MainMenu({ classId, onClassChange, onStartRun, onContinue, onPractice, onRunLogs }: MainMenuProps) {
+export function MainMenu({ classId, onClassChange, onStartRun, onContinue, onPractice, onRunLogs, onGlossary, onSettings, onCredits }: MainMenuProps) {
   return (
     <main className="screen setup">
       <h1>{TERMS.gameTitle}</h1>
@@ -40,9 +43,22 @@ export function MainMenu({ classId, onClassChange, onStartRun, onContinue, onPra
       <button type="button" className="secondary" onClick={onPractice}>
         {TERMS.practiceFight}
       </button>
-      <button type="button" className="secondary" onClick={onRunLogs}>
-        {TERMS.runLogs}
-      </button>
+      <div className="menu-row">
+        <button type="button" className="secondary" onClick={onGlossary}>
+          {TERMS.glossary}
+        </button>
+        <button type="button" className="secondary" onClick={onSettings}>
+          {TERMS.settings}
+        </button>
+      </div>
+      <div className="menu-row">
+        <button type="button" className="secondary" onClick={onRunLogs}>
+          {TERMS.runLogs}
+        </button>
+        <button type="button" className="secondary" onClick={onCredits}>
+          {TERMS.credits}
+        </button>
+      </div>
     </main>
   );
 }

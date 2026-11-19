@@ -5,6 +5,7 @@
  */
 import { cardAtChain, cardNeedsTarget, chainIfPlayed, getCardDef } from '../../engine';
 import type { CombatState, ContentRegistry } from '../../engine';
+import { termsOnCard } from '../../data/glossary';
 import { TERMS } from '../../data/terms';
 import { CardFace } from '../CardFace';
 
@@ -26,6 +27,7 @@ export function SelectedCard({ state, content, handIndex, onlyTarget, onPlay, on
   const shown = cardAtChain(def, chain);
   const needsTarget = cardNeedsTarget(def);
   const affordable = def.cost <= state.player.cycles;
+  const terms = termsOnCard(def, content.statuses);
 
   let hint = '';
   if (!affordable) hint = TERMS.notEnoughCycles;
@@ -53,6 +55,15 @@ export function SelectedCard({ state, content, handIndex, onlyTarget, onPlay, on
         <button type="button" className="secondary" onClick={onCancel}>
           {TERMS.cancel}
         </button>
+        {terms.length > 0 && (
+          <ul className="card-terms">
+            {terms.map((entry) => (
+              <li key={entry.term}>
+                <strong>{entry.term}</strong>: {entry.text}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </section>
   );

@@ -8,7 +8,8 @@
 
 /* Green terminal (default) */
 :root,
-:root[data-theme='green'] {
+:root[data-theme='green'],
+[data-theme='green'] {
   color-scheme: dark;
   --bg: #0b0f0c;
   --panel: #131a15;
@@ -30,7 +31,8 @@
 }
 
 /* Amber terminal: a retro CRT look. */
-:root[data-theme='amber'] {
+:root[data-theme='amber'],
+[data-theme='amber'] {
   --bg: #0f0b05;
   --panel: #1a140a;
   --panel-raised: #241b0d;
@@ -49,7 +51,8 @@
 }
 
 /* Soft dark: lower contrast, easier to read in bright light. */
-:root[data-theme='soft'] {
+:root[data-theme='soft'],
+[data-theme='soft'] {
   --bg: #1e2329;
   --panel: #272e36;
   --panel-raised: #303842;
@@ -298,4 +301,131 @@ button.option:disabled {
 .alert-lockdown {
   color: var(--danger);
   font-weight: 700;
+}
+
+/* --- Bottom sheet (enemy details, pause menu) --- */
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.sheet {
+  width: 100%;
+  max-width: 720px;
+  max-height: 80dvh;
+  margin: 0 auto;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  border-radius: 14px 14px 0 0;
+  border: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.sheet p {
+  margin: 0;
+}
+
+.status-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+}
+
+/* --- Glossary, settings, credits --- */
+
+.info-screen {
+  gap: 16px;
+}
+
+.glossary-section h3 {
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.glossary dl,
+.credits {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.glossary-entry dt {
+  font-weight: 700;
+}
+
+.glossary-entry dd {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.credits a {
+  color: var(--accent);
+}
+
+.pause-menu button {
+  width: 100%;
+}
+
+.theme-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* A tiny preview of a theme: its background with its accent and text colors. */
+.theme-swatch {
+  display: inline-flex;
+  gap: 3px;
+  padding: 5px;
+  border-radius: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.theme-swatch span {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--accent);
+}
+
+.theme-swatch span + span {
+  background: var(--text);
+}
+
+.menu-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.glossary {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card-terms {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.75rem;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+.card-terms strong {
+  color: var(--text);
 }
