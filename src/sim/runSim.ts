@@ -86,6 +86,8 @@ export function playRun(
       if (playsThisTurn === SUSPICIOUS_PLAYS_PER_TURN + 1) result.suspectedInfinites++;
       action = { type: 'COMBAT', action: combatAction };
     } else {
+      // A fight can end on a card play, so the count must reset between fights too.
+      playsThisTurn = 0;
       action = chooseRunAction(run, content, bot.policy, rng, values);
     }
 
