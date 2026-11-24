@@ -30,6 +30,11 @@ export function combatModifiers(run: RunState, content: RunContent): CombatModif
   return { ...total, combatStart, ...(chainStartTactic === undefined ? {} : { chainStartTactic }) };
 }
 
+/** The class passive's fight bonuses alone (no Tools, no Heat), e.g. for single-fight sims. */
+export function combatModifiersForClass(classId: string, content: RunContent): CombatModifiers {
+  return content.classes[classId]?.passive?.combat ?? {};
+}
+
 /**
  * A random encounter of this tier for the run's current act. Encounters that
  * belong to a Final Target only show up in runs that drew that target.

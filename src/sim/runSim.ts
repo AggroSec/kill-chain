@@ -36,8 +36,11 @@ export type SafehouseChoice = 'LAY_LOW' | 'WEAPONIZE' | 'GO_DARK';
 
 export interface RunResult {
   outcome: RunState['outcome'] | 'stuck';
-  /** Floor of the last node entered (0 if none). The boss counts as floors + 1. */
+  /** Floors reached across all acts (each act is floors + 1 with its boss). */
   floorReached: number;
+  /** Act the run ended in. */
+  actReached: number;
+  finalTargetId: string;
   /** Encounter that burned the run, if a fight did. */
   killedBy: string | null;
   /** Cards added by Loot or bought at the Dark Web (not starters). */
@@ -50,12 +53,21 @@ export interface RunResult {
   suspectedInfinites: number;
 }
 
-export function playRun(classId: string, seed: number, bot: RunBot, content: RunContent, values?: CardValues): RunResult {
+export function playRun(
+  classId: string,
+  seed: number,
+  bot: RunBot,
+  content: RunContent,
+  values?: CardValues,
+  lockedCardIds: readonly string[] = [],
+): RunResult {
   const rng = new Rng(seed ^ 0x2545f491);
-  let run = startRun(classId, seed, content);
+  let run = startRun(classId, seed, content, { lockedCardIds });
   const result: RunResult = {
     outcome: 'stuck',
     floorReached: 0,
+    actReached: 1,
+    finalTargetId: run.finalTargetId,
     killedBy: null,
     cardsGained: [],
     tools: [],
@@ -87,7 +99,9 @@ export function playRun(classId: string, seed: number, bot: RunBot, content: Run
   }
 
   if (run.outcome !== 'ongoing') result.outcome = run.outcome;
-  result.floorReached = run.currentNodeId === null ? 0 : (run.map.nodes[run.currentNodeId]?.floor ?? 0);
+  const nodeFloor = run.currentNodeId === null ? 0 : (run.map.nodes[run.currentNodeId]?.floor ?? 0);
+  result.floorReached = (run.act - 1) * (content.config.floors + 1) + nodeFloor;
+  result.actReached = run.act;
   result.tools = [...run.tools];
   return result;
 }
@@ -137,6 +151,12 @@ export interface RunStats {
   safehouse: Map<SafehouseChoice, WinCount>;
   /** Run losses by encounter id. */
   killedBy: Map<string, number>;
+  /** Runs that reached each act (index 0 = Act 1). */
+  reachedAct: number[];
+  /** Runs and wins per Final Target. */
+  targets: Map<string, WinCount>;
+  /** Runs that reached Act 3, and wins, per Final Target (the target's own difficulty). */
+  targetsReached: Map<string, WinCount>;
 }
 
 function bump<K>(map: Map<K, WinCount>, key: K, won: boolean): void {
@@ -146,7 +166,14 @@ function bump<K>(map: Map<K, WinCount>, key: K, won: boolean): void {
   map.set(key, entry);
 }
 
-export function runRuns(classId: string, runs: number, bot: RunBot, content: RunContent, seedBase = 1): RunStats {
+export function runRuns(
+  classId: string,
+  runs: number,
+  bot: RunBot,
+  content: RunContent,
+  seedBase = 1,
+  lockedCardIds: readonly string[] = [],
+): RunStats {
   const stats: RunStats = {
     runs,
     winRate: 0,
@@ -158,15 +185,21 @@ export function runRuns(classId: string, runs: number, bot: RunBot, content: Run
     tools: new Map(),
     safehouse: new Map(),
     killedBy: new Map(),
+    reachedAct: Array<number>(content.config.acts).fill(0),
+    targets: new Map(),
+    targetsReached: new Map(),
   };
   let wins = 0;
   let floors = 0;
   // The sensible policy picks cards by measured value (measured once per class).
-  const values = bot.policy === 'sensible' ? measureCardValues(classId, content, bot.fightBot, CARD_VALUE_FIGHTS) : undefined;
+  const values = bot.policy === 'sensible' ? measureCardValues(classId, content, bot.fightBot, CARD_VALUE_FIGHTS, lockedCardIds) : undefined;
 
   for (let i = 0; i < runs; i++) {
-    const result = playRun(classId, seedBase + i, bot, content, values);
+    const result = playRun(classId, seedBase + i, bot, content, values, lockedCardIds);
     const won = result.outcome === 'won';
+    for (let a = 0; a < result.actReached; a++) stats.reachedAct[a] = (stats.reachedAct[a] ?? 0) + 1;
+    bump(stats.targets, result.finalTargetId, won);
+    if (result.actReached >= content.config.acts) bump(stats.targetsReached, result.finalTargetId, won);
     if (won) wins++;
     if (result.outcome === 'stuck') stats.stuck++;
     floors += result.floorReached;

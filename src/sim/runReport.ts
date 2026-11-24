@@ -33,6 +33,8 @@ export interface RunReportOptions {
   botFilter?: string;
   classIds: readonly string[];
   className: (id: string) => string;
+  /** Cards locked for every run (a fresh profile). Empty = everything unlocked. */
+  lockedCardIds?: readonly string[];
 }
 
 export function runReport(content: RunContent, options: RunReportOptions): { lines: string[]; warnings: string[] } {
@@ -43,20 +45,40 @@ export function runReport(content: RunContent, options: RunReportOptions): { lin
   const results: { bot: RunBot; classId: string; stats: RunStats }[] = [];
 
   for (const bot of bots) {
-    for (const classId of options.classIds) results.push({ bot, classId, stats: runRuns(classId, options.runs, bot, content) });
+    for (const classId of options.classIds) {
+      results.push({ bot, classId, stats: runRuns(classId, options.runs, bot, content, 1, options.lockedCardIds ?? []) });
+    }
   }
 
-  lines.push(`Runs per class per bot: ${options.runs}. Act 1 only; beating the boss wins the run.`, '');
+  const unlocks = (options.lockedCardIds ?? []).length > 0 ? 'fresh profile (unlockable cards locked)' : 'everything unlocked';
+  lines.push(`Runs per class per bot: ${options.runs}. Full ${content.config.acts}-act runs, ${unlocks}.`, '');
   lines.push('### Win rate', '');
-  lines.push('| Bot | Class | Win | Avg floor reached | Turn caps | Stuck | Suspected infinites |');
-  lines.push('| --- | --- | --- | --- | --- | --- | --- |');
+  const actHeaders = Array.from({ length: content.config.acts - 1 }, (_, i) => `Reached Act ${i + 2}`);
+  lines.push(`| Bot | Class | Win | ${actHeaders.join(' | ')} | Avg floor reached | Turn caps | Stuck | Suspected infinites |`);
+  lines.push(`| --- | --- | --- | ${actHeaders.map(() => '---').join(' | ')} | --- | --- | --- | --- |`);
   for (const { bot, classId, stats } of results) {
+    const reached = stats.reachedAct.slice(1).map((n) => pct(n / stats.runs));
     lines.push(
-      `| ${bot.name} | ${options.className(classId)} | ${pct(stats.winRate)} | ${stats.avgFloor.toFixed(1)} | ` +
+      `| ${bot.name} | ${options.className(classId)} | ${pct(stats.winRate)} | ${reached.join(' | ')} | ${stats.avgFloor.toFixed(1)} | ` +
         `${stats.turnCaps} | ${stats.stuck} | ${stats.suspectedInfinites} |`,
     );
     if (stats.stuck > 0) warnings.push(`${bot.name}/${classId}: ${stats.stuck} stuck runs`);
     if (stats.suspectedInfinites > 0) warnings.push(`${bot.name}/${classId}: ${stats.suspectedInfinites} suspected infinite combos`);
+  }
+  lines.push('');
+
+  lines.push('### Win rate per Final Target', '');
+  lines.push('Overall = all runs that drew the target. Act 3 = runs that reached it (how hard the target itself is).', '');
+  lines.push('| Bot | Class | Final Target | Runs | Overall win | Reached Act 3 | Act 3 win |');
+  lines.push('| --- | --- | --- | --- | --- | --- | --- |');
+  for (const { bot, classId, stats } of results) {
+    for (const [target, count] of [...stats.targets].sort((a, b) => a[0].localeCompare(b[0]))) {
+      const reached = stats.targetsReached.get(target) ?? { runs: 0, wins: 0 };
+      lines.push(
+        `| ${bot.name} | ${options.className(classId)} | ${content.targets[target]?.name ?? target} | ${count.runs} | ` +
+          `${pct(winRate(count))} | ${reached.runs} | ${pct(winRate(reached))} |`,
+      );
+    }
   }
   lines.push('');
 

@@ -4,7 +4,7 @@
  * run numbers). Also helpers to build single fights from class and encounter data.
  */
 import type { CombatSetup, RunContent } from '../engine';
-import { DEFAULT_MAX_CYCLES, withUpgrades } from '../engine';
+import { combatModifiersForClass, DEFAULT_MAX_CYCLES, withUpgrades } from '../engine';
 import { BOSS_LIST } from './bosses';
 import { byId } from './byId';
 import { CARD_LIST } from './cards';
@@ -49,14 +49,15 @@ export function getEncounter(id: string): EncounterDef {
   return def;
 }
 
-/** A fight with a class's starter Arsenal at full OpSec against an encounter. */
+/** A fight with a class's starter Arsenal at full OpSec against an encounter, with the class passive. */
 export function starterFight(classId: string, encounterId: string): CombatSetup {
   const cls = getClass(classId);
   return {
     deck: cls.starterDeck,
     opsec: cls.maxOpsec,
     maxOpsec: cls.maxOpsec,
-    maxCycles: DEFAULT_MAX_CYCLES,
+    maxCycles: cls.maxCycles ?? DEFAULT_MAX_CYCLES,
     enemies: getEncounter(encounterId).enemies,
+    modifiers: combatModifiersForClass(classId, CONTENT),
   };
 }

@@ -106,13 +106,13 @@ export const STATUS_LIST: readonly StatusDef[] = [
   {
     id: 'forwarding-rule',
     name: 'Forwarding Rule',
-    description: 'Implant. At the start of your turn, apply 1 Exposed to ALL enemies and gain 2 Block.',
+    description: 'Implant. At the start of your turn, apply 1 Exposed to ALL enemies and gain 3 Block.',
     kind: 'buff',
     decay: 'never',
     implant: true,
     onTurnStart: [
       { kind: 'applyStatus', status: 'exposed', stacks: 1, target: 'allEnemies' },
-      { kind: 'block', amount: 2 },
+      { kind: 'block', amount: 3 },
     ],
   },
   {

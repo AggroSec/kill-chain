@@ -14,6 +14,7 @@ export { livingEnemyIndexes } from './effects';
 // Run loop (map, Loot, Safehouse, Dark Web, Intel)
 export * from './run/runTypes';
 export { startRun, runReducer, layLowAmount, actHealAmount } from './run/run';
+export { combatModifiersForClass } from './run/fights';
 export type { RunOptions } from './run/run';
 export { generateMap, reachableNodeIds, BOSS_NODE_ID } from './run/map';
 export { withUpgrades, isUpgraded, baseCardId, canUpgrade, upgradedId } from './run/upgrades';

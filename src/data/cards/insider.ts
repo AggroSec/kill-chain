@@ -22,8 +22,8 @@ export const INSIDER_CARDS: readonly CardDef[] = [
     type: 'attack',
     tactic: 'collection',
     cost: 1,
-    effects: [{ kind: 'damage', amount: 6 }],
-    v2: { effects: [{ kind: 'damage', amount: 9 }] },
+    effects: [{ kind: 'damage', amount: 8 }],
+    v2: { effects: [{ kind: 'damage', amount: 11 }] },
   },
   {
     id: 'indicator-removal',
@@ -33,8 +33,8 @@ export const INSIDER_CARDS: readonly CardDef[] = [
     type: 'skill',
     tactic: 'defense-evasion',
     cost: 1,
-    effects: [{ kind: 'block', amount: 5 }],
-    v2: { effects: [{ kind: 'block', amount: 8 }] },
+    effects: [{ kind: 'block', amount: 6 }],
+    v2: { effects: [{ kind: 'block', amount: 10 }] },
   },
   {
     id: 'account-discovery',
@@ -66,8 +66,8 @@ export const INSIDER_CARDS: readonly CardDef[] = [
     type: 'attack',
     tactic: 'exfiltration',
     cost: 2,
-    effects: [{ kind: 'damage', amount: 8, bonusPerChain: 2 }],
-    v2: { effects: [{ kind: 'damage', amount: 11, bonusPerChain: 3 }] },
+    effects: [{ kind: 'damage', amount: 10, bonusPerChain: 2 }],
+    v2: { effects: [{ kind: 'damage', amount: 14, bonusPerChain: 3 }] },
   },
 
   // --- Public ---
@@ -80,12 +80,12 @@ export const INSIDER_CARDS: readonly CardDef[] = [
     tactic: 'execution',
     cost: 1,
     effects: [
-      { kind: 'damage', amount: 5 },
+      { kind: 'damage', amount: 6 },
       { kind: 'draw', count: 1 },
     ],
     v2: {
       effects: [
-        { kind: 'damage', amount: 8 },
+        { kind: 'damage', amount: 10 },
         { kind: 'draw', count: 1 },
       ],
     },
@@ -98,8 +98,8 @@ export const INSIDER_CARDS: readonly CardDef[] = [
     type: 'attack',
     tactic: 'collection',
     cost: 1,
-    effects: [{ kind: 'damage', amount: 4, hits: 2 }],
-    v2: { effects: [{ kind: 'damage', amount: 6, hits: 2 }] },
+    effects: [{ kind: 'damage', amount: 5, hits: 2 }],
+    v2: { effects: [{ kind: 'damage', amount: 8, hits: 2 }] },
   },
   {
     id: 'clipboard-data',
@@ -110,12 +110,12 @@ export const INSIDER_CARDS: readonly CardDef[] = [
     tactic: 'collection',
     cost: 1,
     effects: [
-      { kind: 'damage', amount: 3, target: 'allEnemies' },
+      { kind: 'damage', amount: 4, target: 'allEnemies' },
       { kind: 'draw', count: 1 },
     ],
     v2: {
       effects: [
-        { kind: 'damage', amount: 5, target: 'allEnemies' },
+        { kind: 'damage', amount: 6, target: 'allEnemies' },
         { kind: 'draw', count: 1 },
       ],
     },
@@ -143,12 +143,12 @@ export const INSIDER_CARDS: readonly CardDef[] = [
     tactic: 'persistence',
     cost: 1,
     effects: [
-      { kind: 'block', amount: 6 },
+      { kind: 'block', amount: 8 },
       { kind: 'alert', amount: -1 },
     ],
     v2: {
       effects: [
-        { kind: 'block', amount: 9 },
+        { kind: 'block', amount: 11 },
         { kind: 'alert', amount: -2 },
       ],
     },
@@ -165,7 +165,7 @@ export const INSIDER_CARDS: readonly CardDef[] = [
     v2: {
       effects: [
         { kind: 'alert', amount: -4 },
-        { kind: 'block', amount: 3 },
+        { kind: 'block', amount: 4 },
       ],
     },
   },
@@ -177,9 +177,9 @@ export const INSIDER_CARDS: readonly CardDef[] = [
     type: 'attack',
     tactic: 'command-and-control',
     cost: 1,
-    effects: [{ kind: 'damage', amount: 8 }],
+    effects: [{ kind: 'damage', amount: 10 }],
     keywords: { noisy: 1 },
-    v2: { effects: [{ kind: 'damage', amount: 11 }] },
+    v2: { effects: [{ kind: 'damage', amount: 14 }] },
   },
   {
     id: 'automated-collection',
@@ -189,8 +189,8 @@ export const INSIDER_CARDS: readonly CardDef[] = [
     type: 'attack',
     tactic: 'collection',
     cost: 2,
-    effects: [{ kind: 'damage', amount: 2, hits: 3, target: 'allEnemies' }],
-    v2: { effects: [{ kind: 'damage', amount: 3, hits: 3, target: 'allEnemies' }] },
+    effects: [{ kind: 'damage', amount: 3, hits: 3, target: 'allEnemies' }],
+    v2: { effects: [{ kind: 'damage', amount: 4, hits: 3, target: 'allEnemies' }] },
   },
   {
     id: 'archive-collected-data',
@@ -219,9 +219,9 @@ export const INSIDER_CARDS: readonly CardDef[] = [
     type: 'attack',
     tactic: 'exfiltration',
     cost: 1,
-    effects: [{ kind: 'damage', amount: 10 }],
+    effects: [{ kind: 'damage', amount: 13 }],
     keywords: { noisy: 2 },
-    v2: { effects: [{ kind: 'damage', amount: 14 }] },
+    v2: { effects: [{ kind: 'damage', amount: 18 }] },
   },
 
   // --- Private ---
@@ -233,9 +233,9 @@ export const INSIDER_CARDS: readonly CardDef[] = [
     type: 'attack',
     tactic: 'collection',
     cost: 1,
-    effects: [{ kind: 'damage', amount: 6, bonusPerChain: 2 }],
+    effects: [{ kind: 'damage', amount: 8, bonusPerChain: 2 }],
     keywords: { stash: true },
-    v2: { effects: [{ kind: 'damage', amount: 9, bonusPerChain: 2 }] },
+    v2: { effects: [{ kind: 'damage', amount: 11, bonusPerChain: 2 }] },
   },
   {
     id: 'scheduled-transfer',
@@ -267,9 +267,9 @@ export const INSIDER_CARDS: readonly CardDef[] = [
     type: 'attack',
     tactic: 'exfiltration',
     cost: 2,
-    effects: [{ kind: 'damage', amount: 15 }],
+    effects: [{ kind: 'damage', amount: 19 }],
     keywords: { noisy: 2 },
-    v2: { effects: [{ kind: 'damage', amount: 20 }] },
+    v2: { effects: [{ kind: 'damage', amount: 25 }] },
   },
   {
     id: 'access-token-manipulation',
@@ -296,8 +296,8 @@ export const INSIDER_CARDS: readonly CardDef[] = [
     type: 'attack',
     tactic: 'lateral-movement',
     cost: 1,
-    effects: [{ kind: 'damage', amount: 5, target: 'allEnemies' }],
-    v2: { effects: [{ kind: 'damage', amount: 8, target: 'allEnemies' }] },
+    effects: [{ kind: 'damage', amount: 6, target: 'allEnemies' }],
+    v2: { effects: [{ kind: 'damage', amount: 10, target: 'allEnemies' }] },
   },
   {
     id: 'inhibit-system-recovery',
@@ -307,9 +307,9 @@ export const INSIDER_CARDS: readonly CardDef[] = [
     type: 'attack',
     tactic: 'impact',
     cost: 2,
-    effects: [{ kind: 'damage', amount: 12, bonusPerChain: 3 }],
+    effects: [{ kind: 'damage', amount: 15, bonusPerChain: 3 }],
     keywords: { noisy: 2 },
-    v2: { effects: [{ kind: 'damage', amount: 16, bonusPerChain: 3 }] },
+    v2: { effects: [{ kind: 'damage', amount: 20, bonusPerChain: 3 }] },
   },
 
   // --- 0-day ---
@@ -321,9 +321,9 @@ export const INSIDER_CARDS: readonly CardDef[] = [
     type: 'attack',
     tactic: 'exfiltration',
     cost: 2,
-    effects: [{ kind: 'damage', amount: 6, hits: 3 }],
+    effects: [{ kind: 'damage', amount: 8, hits: 3 }],
     keywords: { noisy: 1 },
-    v2: { effects: [{ kind: 'damage', amount: 8, hits: 3 }] },
+    v2: { effects: [{ kind: 'damage', amount: 10, hits: 3 }] },
   },
   {
     id: 'forge-web-credentials',

@@ -139,13 +139,13 @@ export const UNLOCKABLE_CARDS: readonly CardDef[] = [
     tactic: 'execution',
     cost: 1,
     effects: [
-      { kind: 'damage', amount: 4 },
-      { kind: 'exploit', damagePerStack: 5 },
+      { kind: 'damage', amount: 5 },
+      { kind: 'exploit', damagePerStack: 6 },
     ],
     v2: {
       effects: [
-        { kind: 'damage', amount: 6 },
-        { kind: 'exploit', damagePerStack: 6 },
+        { kind: 'damage', amount: 7 },
+        { kind: 'exploit', damagePerStack: 7 },
       ],
     },
   },
@@ -159,12 +159,12 @@ export const UNLOCKABLE_CARDS: readonly CardDef[] = [
     cost: 1,
     effects: [
       { kind: 'applyStatus', status: 'vuln', stacks: 3, target: 'target' },
-      { kind: 'block', amount: 3 },
+      { kind: 'block', amount: 4 },
     ],
     v2: {
       effects: [
         { kind: 'applyStatus', status: 'vuln', stacks: 4, target: 'target' },
-        { kind: 'block', amount: 5 },
+        { kind: 'block', amount: 6 },
       ],
     },
   },
@@ -177,12 +177,12 @@ export const UNLOCKABLE_CARDS: readonly CardDef[] = [
     tactic: 'defense-evasion',
     cost: 1,
     effects: [
-      { kind: 'block', amount: 8 },
+      { kind: 'block', amount: 10 },
       { kind: 'applyStatus', status: 'vuln', stacks: 2, target: 'target' },
     ],
     v2: {
       effects: [
-        { kind: 'block', amount: 11 },
+        { kind: 'block', amount: 13 },
         { kind: 'applyStatus', status: 'vuln', stacks: 2, target: 'target' },
       ],
     },
@@ -209,9 +209,8 @@ export const UNLOCKABLE_CARDS: readonly CardDef[] = [
     type: 'attack',
     tactic: 'lateral-movement',
     cost: 2,
-    effects: [{ kind: 'exploit', damagePerStack: 8 }],
-    keywords: { noisy: 1 },
-    v2: { effects: [{ kind: 'exploit', damagePerStack: 10 }] },
+    effects: [{ kind: 'exploit', damagePerStack: 9 }],
+    v2: { effects: [{ kind: 'exploit', damagePerStack: 11 }] },
   },
   {
     id: 'endpoint-denial-of-service',
@@ -221,9 +220,9 @@ export const UNLOCKABLE_CARDS: readonly CardDef[] = [
     type: 'attack',
     tactic: 'impact',
     cost: 2,
-    effects: [{ kind: 'damage', amount: 6, hits: 2, target: 'allEnemies' }],
-    keywords: { noisy: 2 },
-    v2: { effects: [{ kind: 'damage', amount: 8, hits: 2, target: 'allEnemies' }] },
+    effects: [{ kind: 'damage', amount: 7, hits: 2, target: 'allEnemies' }],
+    keywords: { noisy: 1 },
+    v2: { effects: [{ kind: 'damage', amount: 10, hits: 2, target: 'allEnemies' }] },
   },
   {
     id: 'firmware-corruption',
@@ -233,9 +232,9 @@ export const UNLOCKABLE_CARDS: readonly CardDef[] = [
     type: 'attack',
     tactic: 'impact',
     cost: 2,
-    effects: [{ kind: 'exploit', damagePerStack: 10 }],
-    keywords: { noisy: 3 },
-    v2: { keywords: { noisy: 1 } },
+    effects: [{ kind: 'exploit', damagePerStack: 11 }],
+    keywords: { noisy: 2 },
+    v2: { keywords: {} },
   },
 
   // --- Insider ---
@@ -248,12 +247,12 @@ export const UNLOCKABLE_CARDS: readonly CardDef[] = [
     tactic: 'collection',
     cost: 1,
     effects: [
-      { kind: 'damage', amount: 5 },
+      { kind: 'damage', amount: 6 },
       { kind: 'applyStatus', status: 'exposed', stacks: 1, target: 'target' },
     ],
     v2: {
       effects: [
-        { kind: 'damage', amount: 8 },
+        { kind: 'damage', amount: 10 },
         { kind: 'applyStatus', status: 'exposed', stacks: 1, target: 'target' },
       ],
     },
@@ -267,12 +266,12 @@ export const UNLOCKABLE_CARDS: readonly CardDef[] = [
     tactic: 'impact',
     cost: 2,
     effects: [
-      { kind: 'damage', amount: 4, target: 'allEnemies' },
+      { kind: 'damage', amount: 5, target: 'allEnemies' },
       { kind: 'applyStatus', status: 'throttled', stacks: 2, target: 'allEnemies' },
     ],
     v2: {
       effects: [
-        { kind: 'damage', amount: 6, target: 'allEnemies' },
+        { kind: 'damage', amount: 8, target: 'allEnemies' },
         { kind: 'applyStatus', status: 'throttled', stacks: 2, target: 'allEnemies' },
       ],
     },
@@ -286,12 +285,12 @@ export const UNLOCKABLE_CARDS: readonly CardDef[] = [
     tactic: 'command-and-control',
     cost: 1,
     effects: [
-      { kind: 'block', amount: 7 },
+      { kind: 'block', amount: 9 },
       { kind: 'alert', amount: -2 },
     ],
     v2: {
       effects: [
-        { kind: 'block', amount: 10 },
+        { kind: 'block', amount: 13 },
         { kind: 'alert', amount: -2 },
       ],
     },
@@ -304,9 +303,9 @@ export const UNLOCKABLE_CARDS: readonly CardDef[] = [
     type: 'attack',
     tactic: 'exfiltration',
     cost: 2,
-    effects: [{ kind: 'damage', amount: 15 }],
+    effects: [{ kind: 'damage', amount: 19 }],
     keywords: { noisy: 1 },
-    v2: { effects: [{ kind: 'damage', amount: 20 }] },
+    v2: { effects: [{ kind: 'damage', amount: 25 }] },
   },
   {
     id: 'steal-application-access-token',
@@ -332,12 +331,12 @@ export const UNLOCKABLE_CARDS: readonly CardDef[] = [
     tactic: 'impact',
     cost: 2,
     effects: [
-      { kind: 'damage', amount: 8 },
+      { kind: 'damage', amount: 10 },
       { kind: 'applyStatus', status: 'stalled', stacks: 1, target: 'target' },
     ],
     v2: {
       effects: [
-        { kind: 'damage', amount: 12 },
+        { kind: 'damage', amount: 15 },
         { kind: 'applyStatus', status: 'stalled', stacks: 1, target: 'target' },
       ],
     },
@@ -350,7 +349,7 @@ export const UNLOCKABLE_CARDS: readonly CardDef[] = [
     type: 'attack',
     tactic: 'impact',
     cost: 3,
-    effects: [{ kind: 'damage', amount: 20, bonusPerChain: 3 }],
+    effects: [{ kind: 'damage', amount: 25, bonusPerChain: 3 }],
     keywords: { noisy: 2 },
     v2: { cost: 2 },
   },

@@ -174,14 +174,14 @@ export const ACT2_ENEMIES: readonly EnemyDef[] = [
     id: 'domain-controller',
     name: 'Domain Controller',
     tier: 'boss',
-    maxIntegrity: 130,
+    maxIntegrity: 110,
     description: 'Act 2 boss. Re-issues tickets: heals its adds while they live. Decide who goes down first.',
     moves: [
       {
         id: 'reissue-tickets',
         name: 'Re-issue Tickets',
         effects: [
-          { kind: 'healAllies', amount: 12 },
+          { kind: 'healAllies', amount: 8 },
           { kind: 'block', amount: 12 },
         ],
         weight: 1,
@@ -204,7 +204,7 @@ export const ACT2_ENEMIES: readonly EnemyDef[] = [
     id: 'kerberos',
     name: 'Kerberos',
     tier: 'boss',
-    maxIntegrity: 50,
+    maxIntegrity: 44,
     description: 'Domain Controller add. Checks your tickets and leaves you Exposed (you take 50% more damage).',
     moves: [
       { id: 'ticket-check', name: 'Ticket Check', effects: [{ kind: 'attack', damage: 7, hits: 2 }], weight: 2, maxInARow: 1 },
@@ -225,7 +225,7 @@ export const ACT2_ENEMIES: readonly EnemyDef[] = [
     id: 'gpo-server',
     name: 'GPO Server',
     tier: 'boss',
-    maxIntegrity: 55,
+    maxIntegrity: 48,
     description: 'Domain Controller add. Pushes policy: Hardens the team and raises Alert.',
     moves: [
       {
