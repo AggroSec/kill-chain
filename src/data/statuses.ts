@@ -16,14 +16,14 @@ export const STATUS_LIST: readonly StatusDef[] = [
   {
     id: 'exposed',
     name: 'Exposed',
-    description: 'Takes 50% more damage from attacks. Lasts a number of turns.',
+    description: 'Takes 50% more damage from attacks. Lasts a number of turns. From Act 2, enemies can put this on you too.',
     kind: 'debuff',
     decay: 'endOfOwnerTurn',
   },
   {
     id: 'throttled',
     name: 'Throttled',
-    description: 'Deals 25% less attack damage. Lasts a number of turns.',
+    description: 'Deals 25% less attack damage. Lasts a number of turns. From Act 2, enemies can put this on you too.',
     kind: 'debuff',
     decay: 'endOfOwnerTurn',
   },

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import type { RunContent, RunState } from '../../engine';
 import { getClass } from '../../data/content';
-import { TERMS } from '../../data/terms';
+import { ACT_NAMES, TERMS } from '../../data/terms';
 import { DeckPicker } from './DeckPicker';
 
 interface RunHeaderProps {
@@ -37,15 +37,18 @@ export function RunHeader({ run, seed, content, onMenu }: RunHeaderProps) {
         <span>
           {TERMS.crypto} {run.crypto}
         </span>
-        <span>
-          {TERMS.floor} {floor}/{content.config.floors}
-        </span>
+        <span>{floor > content.config.floors ? TERMS.boss : `${TERMS.floor} ${floor}/${content.config.floors}`}</span>
         {run.heat > 0 && (
           <span className="heat">
             {TERMS.heat} {run.heat}
           </span>
         )}
       </div>
+      <p className="muted run-target">
+        {TERMS.act} {run.act}: {run.act >= content.config.acts ? (content.targets[run.finalTargetId]?.name ?? '') : (ACT_NAMES[run.act] ?? '')}
+        {' · '}
+        {TERMS.finalTarget}: {content.targets[run.finalTargetId]?.name ?? '?'}
+      </p>
       <div className="stats">
         <button type="button" className="secondary small-button" onClick={() => setShowing('arsenal')}>
           {TERMS.arsenal} ({run.deck.length})

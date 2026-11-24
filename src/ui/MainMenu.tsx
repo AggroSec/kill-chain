@@ -1,10 +1,14 @@
-/** Start screen: pick a class and start a run, continue a saved run, practice a single fight, or get run logs. */
-import { CLASS_LIST } from '../data/classes';
+/** Start screen: pick a class and start a run, continue a saved run, see Bounties, practice a fight, or get run logs. */
+import type { Profile } from '../engine';
+import { PROGRESSION } from '../data/progression';
 import { TERMS } from '../data/terms';
+import { ClassPicker } from './progress/ClassPicker';
 
 interface MainMenuProps {
   classId: string;
   onClassChange: (id: string) => void;
+  profile: Profile;
+  onBounties: () => void;
   onStartRun: () => void;
   /** Present when a saved run can be continued. */
   onContinue?: () => void;
@@ -18,7 +22,7 @@ interface MainMenuProps {
   onDeclineTutorial?: () => void;
 }
 
-export function MainMenu({ classId, onClassChange, onStartRun, onContinue, onPractice, onRunLogs, onGlossary, onSettings, onCredits, onHowToPlay, onDeclineTutorial }: MainMenuProps) {
+export function MainMenu({ classId, onClassChange, profile, onBounties, onStartRun, onContinue, onPractice, onRunLogs, onGlossary, onSettings, onCredits, onHowToPlay, onDeclineTutorial }: MainMenuProps) {
   return (
     <main className="screen setup">
       <h1>{TERMS.gameTitle}</h1>
@@ -41,23 +45,19 @@ export function MainMenu({ classId, onClassChange, onStartRun, onContinue, onPra
         </button>
       )}
 
-      <fieldset className="class-pick">
-        <legend>{TERMS.chooseClass}</legend>
-        {CLASS_LIST.map((cls) => (
-          <label key={cls.id} className={cls.id === classId ? 'option selected' : 'option'}>
-            <input type="radio" name="class" value={cls.id} checked={cls.id === classId} onChange={() => onClassChange(cls.id)} />
-            <strong>{cls.name}</strong>
-            <span className="muted">{cls.tagline}</span>
-          </label>
-        ))}
-      </fieldset>
+      <ClassPicker classId={classId} onClassChange={onClassChange} profile={profile} progression={PROGRESSION} />
 
       <button type="button" className="primary" onClick={onStartRun}>
         {onContinue !== undefined ? `${TERMS.startRun} (${TERMS.abandonRun.toLowerCase()} saved run)` : TERMS.startRun}
       </button>
-      <button type="button" className="secondary" onClick={onPractice}>
-        {TERMS.practiceFight}
-      </button>
+      <div className="menu-row">
+        <button type="button" className="secondary" onClick={onBounties}>
+          {TERMS.bounties}
+        </button>
+        <button type="button" className="secondary" onClick={onPractice}>
+          {TERMS.practiceFight}
+        </button>
+      </div>
       <div className="menu-row">
         <button type="button" className="secondary" onClick={onGlossary}>
           {TERMS.glossary}

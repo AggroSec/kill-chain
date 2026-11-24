@@ -8,7 +8,8 @@
  */
 import { ALERT_LEVELS, CHAIN_BLOCK_PER_STACK, CHAIN_DAMAGE_PER_STACK, DEFAULT_MAX_CYCLES } from '../engine';
 import type { CardDef, CardEffect, StatusDef } from '../engine';
-import { ALERT_LEVEL_NAMES, KEYWORD_NAMES, NODE_NAMES, RARITY_NAMES, TERMS } from './terms';
+import { CLASS_LIST } from './classes';
+import { ACT_NAMES, ALERT_LEVEL_NAMES, KEYWORD_NAMES, NODE_NAMES, RARITY_NAMES, TERMS } from './terms';
 
 export interface GlossaryEntry {
   term: string;
@@ -74,9 +75,29 @@ const BASE_SECTIONS: GlossarySection[] = [
         term: 'Rarity',
         text: `${RARITY_NAMES.public} cards are common, ${RARITY_NAMES.private} are uncommon and ${RARITY_NAMES['zero-day']} are rare and powerful.`,
       },
-      { term: TERMS.runWon, text: 'You beat the final boss and got out with the data. You win the run.' },
+      {
+        term: TERMS.act,
+        text: `A run has 3 acts: ${ACT_NAMES[1] ?? ''}, ${ACT_NAMES[2] ?? ''}, then your ${TERMS.finalTarget}. Each ends with a boss. A new act starts by recovering half of your missing ${TERMS.opsec}.`,
+      },
+      {
+        term: TERMS.finalTarget,
+        text: 'Act 3: one target environment (like an OT Facility or a Cloud Tenant), drawn when the run starts and shown on the first map, so you can build for its boss.',
+      },
+      { term: TERMS.runWon, text: 'You beat the Final Target boss and got out with the data. You win the run.' },
       { term: TERMS.runLost, text: 'Your OpSec hit 0. The run is over.' },
     ],
+  },
+  {
+    title: 'Progress',
+    entries: [
+      { term: TERMS.xp, text: 'Every run, won or lost, gives XP to the class you played. The further you get, the more XP.' },
+      { term: TERMS.level, text: 'Each class level adds new cards to that class\'s Loot pool. Unlocks add variety, not raw power.' },
+      { term: TERMS.bounties, text: 'Goals across all your runs, listed on the Bounties screen. Each gives XP, and some unlock cards or classes.' },
+    ],
+  },
+  {
+    title: 'Classes',
+    entries: CLASS_LIST.map((cls) => ({ term: `${cls.name}: ${cls.passiveName}`, text: cls.passiveText })),
   },
 ];
 

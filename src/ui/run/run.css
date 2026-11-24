@@ -14,6 +14,193 @@
   color: var(--muted);
 }
 
+.class-pick .option {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.class-pick .option.locked {
+  opacity: 0.55;
+}
+
+.class-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.class-level {
+  font-family: var(--heading-font);
+  font-size: 0.8rem;
+  color: var(--accent);
+}
+
+.class-passive {
+  font-size: 0.85rem;
+}
+
+.class-unlock {
+  font-size: 0.85rem;
+  color: var(--warn);
+}
+
+/* XP bar on the class picker. */
+.xp-bar {
+  position: relative;
+  display: block;
+  height: 14px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.xp-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--accent);
+  opacity: 0.35;
+}
+
+.xp-label {
+  position: relative;
+  display: block;
+  font-size: 0.7rem;
+  line-height: 12px;
+  text-align: center;
+}
+
+/* --- Act intro and run-end progress --- */
+
+/* Pop-up over the map at the start of an act. */
+.act-intro-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+}
+
+.act-intro {
+  width: 100%;
+  max-width: 420px;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.act-intro h2 {
+  margin: 0;
+}
+
+.act-intro h3 {
+  margin: 4px 0;
+  color: var(--warn);
+}
+
+.act-intro p {
+  margin: 4px 0;
+}
+
+.recovered {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.run-target {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.run-rewards p {
+  margin: 4px 0;
+}
+
+.level-up {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* --- Bounties and class levels screen --- */
+
+.progress-view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.level-track h3 {
+  margin: 12px 0 4px;
+  font-size: 0.95rem;
+}
+
+.level-list {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+}
+
+.level-list li {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  opacity: 0.7;
+}
+
+.level-list li.earned {
+  opacity: 1;
+  border-color: var(--accent);
+}
+
+.level-num {
+  font-family: var(--heading-font);
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.bounty-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bounty {
+  display: flex;
+  gap: 10px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.bounty.earned {
+  border-color: var(--accent);
+}
+
+.bounty-check {
+  font-size: 1.2rem;
+  color: var(--accent);
+}
+
+.bounty-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.9rem;
+}
+
 .shop-item {
   display: flex;
   flex-direction: column;

@@ -1,5 +1,6 @@
 /** Loot after a fight: what you got, then pick 1 card (tap, then confirm) or skip. */
 import { useState } from 'react';
+import { getClass } from '../../data/content';
 import { TERMS } from '../../data/terms';
 import { CardFace } from '../CardFace';
 import type { PhaseProps } from './phaseProps';
@@ -13,7 +14,8 @@ export function LootView({ run, content, act }: PhaseProps) {
 
   return (
     <section className="panel">
-      <h2>{TERMS.loot}</h2>
+      <h2>{loot.bonus === true ? `${getClass(run.classId).passiveName}: ${TERMS.bonusPick}` : TERMS.loot}</h2>
+      {loot.bonus === true && <p className="muted">{getClass(run.classId).passiveText}</p>}
       {loot.crypto > 0 && (
         <p className="loot-crypto">
           +{loot.crypto} {TERMS.crypto}

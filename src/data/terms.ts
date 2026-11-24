@@ -106,7 +106,42 @@ export const TERMS = {
   reportOnGitHub: 'Report on GitHub',
   runLogHelp: 'A run log is your seed plus every move you made, so the run can be replayed exactly. Paste it into a GitHub issue or a message.',
   noRunLogs: 'No runs yet.',
+
+  // --- Acts, Final Targets and progression (Milestone 5) ---
+  act: 'Act',
+  finalTarget: 'Final Target',
+  finalTargetDrawn: 'Your Final Target',
+  boss: 'Boss',
+  recovered: 'Recovered',
+  actStartHint: 'New network, new map. Your Arsenal, Tools and Crypto carry over.',
+  passive: 'Passive',
+  bonusPick: 'bonus pick',
+  bounties: 'Bounties',
+  bounty: 'Bounty',
+  level: 'Level',
+  xp: 'XP',
+  maxLevel: 'Max level',
+  locked: 'Locked',
+  earned: 'Earned',
+  unlocks: 'Unlocks',
+  unlockedBy: 'Unlock with',
+  classLevels: 'Class levels',
+  progress: 'Progress',
+  xpGained: 'XP gained',
+  levelUp: 'Level up',
+  newUnlocks: 'Unlocked',
+  newClass: 'New class',
+  newMode: 'New mode',
+  bountiesHelp: 'Bounties are goals across all your runs. Each one gives XP to the class you were playing, and some unlock cards or classes.',
+  levelsHelp: 'Every run, won or lost, gives XP to the class you played. Each level adds new cards to that class\'s Loot pool.',
 } as const;
+
+/** Act names, shown on the map and in the act intro. Act 3 is the run's Final Target. */
+export const ACT_NAMES: Readonly<Record<number, string>> = {
+  1: 'Perimeter',
+  2: 'Internal',
+  3: 'Final Target',
+};
 
 /** Theme names for Settings. */
 export const THEME_NAMES = {

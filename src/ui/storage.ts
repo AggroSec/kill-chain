@@ -6,6 +6,7 @@
  */
 import { formatRunLog, startRun } from '../engine';
 import type { RunAction, RunContent, RunState } from '../engine';
+import type { RewardsSummary } from './profile';
 
 /** Bump this when RunState changes shape, so old saves are ignored instead of breaking. */
 const SAVE_KEY = 'kill-chain.run.v1';
@@ -25,6 +26,8 @@ export interface SavedRun {
    * its seed. Missing on saves made before run logs existed.
    */
   actions?: RunAction[];
+  /** Set once the finished run's XP and Bounties are added to the profile (so it only happens once). */
+  rewards?: RewardsSummary;
 }
 
 /** An archived run log: the text plus a label for the list. */
