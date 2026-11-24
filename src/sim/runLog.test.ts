@@ -118,7 +118,8 @@ describe('replayReport', () => {
   it('narrates a full run without crashing and ends with the final state', () => {
     const { final, actions } = recordRun('exploit-dev', 5);
     const report = replayReport({ build: 'test', classId: 'exploit-dev', seed: 5, result: final.outcome, actions }, CONTENT, 'test');
-    expect(report).toContain('== Floor 1');
+    expect(report).toContain('== Act 1 floor 1');
+    expect(report).toContain('Final Target: ');
     expect(report).toContain('Play ');
     expect(report).toContain(`== End: ${final.outcome}`);
     expect(report).not.toContain('WARNING');
