@@ -16,7 +16,7 @@ describe('enemy intents', () => {
     const enemy = freshEnemy();
     let previous: string | null = null;
     for (let i = 0; i < 500; i++) {
-      const moveId = chooseNextMove(enemy, alternator, rng);
+      const moveId = chooseNextMove(enemy, alternator, rng, 0);
       if (previous === 'spike') expect(moveId).not.toBe('spike');
       recordMoveUsed(enemy, moveId);
       previous = moveId;

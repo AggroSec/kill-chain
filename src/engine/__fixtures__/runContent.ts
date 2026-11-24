@@ -28,6 +28,9 @@ const testerCards: CardDef[] = [
 ];
 
 export const TEST_CONFIG: RunConfig = {
+  // One act, so the boss ends the run. Multi-act tests use MULTI_ACT_CONTENT.
+  acts: 1,
+  actHealPercentOfMissing: 50,
   floors: 6,
   lanes: 4,
   paths: 4,
@@ -109,15 +112,41 @@ export const RUN_TEST_CONTENT: RunContent = {
   },
   tools: Object.fromEntries(tools.map((tool) => [tool.id, tool])),
   events: Object.fromEntries(events.map((event) => [event.id, event])),
+  targets: {},
   config: TEST_CONFIG,
+};
+
+/** Three acts: Act 2 has its own pool, Act 3 has two Final Targets. */
+export const MULTI_ACT_CONTENT: RunContent = {
+  ...RUN_TEST_CONTENT,
+  encounters: {
+    ...RUN_TEST_CONTENT.encounters,
+    e2: { id: 'e2', act: 2, tier: 'easy', enemies: ['puncher'] },
+    n2: { id: 'n2', act: 2, tier: 'normal', enemies: ['puncher'] },
+    el2: { id: 'el2', act: 2, tier: 'elite', enemies: ['grower'] },
+    b2: { id: 'b2', act: 2, tier: 'boss', enemies: ['wall'] },
+    e3a: { id: 'e3a', act: 3, target: 'alpha', tier: 'easy', enemies: ['puncher'] },
+    n3a: { id: 'n3a', act: 3, target: 'alpha', tier: 'normal', enemies: ['puncher'] },
+    el3a: { id: 'el3a', act: 3, target: 'alpha', tier: 'elite', enemies: ['grower'] },
+    b3a: { id: 'b3a', act: 3, target: 'alpha', tier: 'boss', enemies: ['wall'] },
+    e3b: { id: 'e3b', act: 3, target: 'beta', tier: 'easy', enemies: ['alternator'] },
+    n3b: { id: 'n3b', act: 3, target: 'beta', tier: 'normal', enemies: ['alternator'] },
+    el3b: { id: 'el3b', act: 3, target: 'beta', tier: 'elite', enemies: ['grower'] },
+    b3b: { id: 'b3b', act: 3, target: 'beta', tier: 'boss', enemies: ['wall', 'wall'] },
+  },
+  targets: {
+    alpha: { id: 'alpha', name: 'Alpha', description: '', bossName: 'Wall' },
+    beta: { id: 'beta', name: 'Beta', description: '', bossName: 'Two Walls' },
+  },
+  config: { ...TEST_CONFIG, acts: 3 },
 };
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-export function act(run: RunState, action: Parameters<typeof runReducer>[1]): RunState {
-  return runReducer(run, action, RUN_TEST_CONTENT);
+export function act(run: RunState, action: Parameters<typeof runReducer>[1], content: RunContent = RUN_TEST_CONTENT): RunState {
+  return runReducer(run, action, content);
 }
 
 /** A copy of `run` placed directly in `phase` (skips walking the map). */
@@ -126,7 +155,7 @@ export function inPhase(run: RunState, phase: RunPhase): RunState {
 }
 
 /** Wins the current fight: drops every enemy to 1 Integrity, then plays t-strikes at them. */
-export function winFight(run: RunState): RunState {
+export function winFight(run: RunState, content: RunContent = RUN_TEST_CONTENT): RunState {
   const prepared = structuredClone(run);
   if (prepared.phase.kind !== 'combat') throw new Error('Not in a fight');
   for (const enemy of prepared.phase.combat.enemies) {
@@ -142,7 +171,7 @@ export function winFight(run: RunState): RunState {
       handIndex === -1 || combat.player.cycles < 1
         ? ({ type: 'END_TURN' } as const)
         : ({ type: 'PLAY_CARD', handIndex, targetIndex: target } as const);
-    current = act(current, { type: 'COMBAT', action });
+    current = act(current, { type: 'COMBAT', action }, content);
   }
   return current;
 }

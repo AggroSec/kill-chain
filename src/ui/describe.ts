@@ -53,7 +53,8 @@ export function describeCardEffect(effect: CardEffect, content: ContentRegistry)
       }
       const name = statusName(content, effect.status);
       if (effect.target === 'self') return `Gain ${effect.stacks} ${name}.`;
-      const where = effect.target === 'allEnemies' ? ` to ${TERMS.allEnemies}` : '';
+      const where =
+        effect.target === 'allEnemies' ? ` to ${TERMS.allEnemies}` : effect.target === 'randomEnemy' ? ` to ${TERMS.randomEnemy}` : '';
       return `Apply ${effect.stacks} ${name}${where}.`;
     }
     case 'exploit':
@@ -99,6 +100,10 @@ export function describeIntent(effects: readonly EnemyEffect[], content: Content
           return `Allies +${effect.stacks} ${statusName(content, effect.status)}`;
         case 'removeImplants':
           return `Destroy ${effect.count} ${KEYWORD_NAMES.implant}`;
+        case 'healAllies':
+          return `Allies recover ${effect.amount} ${TERMS.integrity}`;
+        case 'debuffPlayer':
+          return `You +${effect.stacks} ${statusName(content, effect.status)}`;
       }
     })
     .join(' + ');
@@ -113,6 +118,8 @@ const INTENT_GLYPHS: Readonly<Record<EnemyEffect['kind'], string>> = {
   buffSelf: '▲',
   buffAllies: '▲',
   removeImplants: '✂',
+  healAllies: '✚',
+  debuffPlayer: '▼',
 };
 
 /**
@@ -136,6 +143,10 @@ export function shortIntent(effects: readonly EnemyEffect[], content: ContentReg
         return `${glyph} ${statusName(content, effect.status)}`;
       case 'removeImplants':
         return `${glyph} ${KEYWORD_NAMES.implant}`;
+      case 'healAllies':
+        return `${glyph} Heal ${effect.amount}`;
+      case 'debuffPlayer':
+        return `${glyph} ${statusName(content, effect.status)}`;
     }
   });
 }

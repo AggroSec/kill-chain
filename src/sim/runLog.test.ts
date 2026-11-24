@@ -4,7 +4,8 @@
  * Lives in src/sim because recording a real run needs the bots.
  */
 import { describe, expect, it } from 'vitest';
-import { decodeAction, encodeAction, formatRunLog, parseRunLog, replayRun, Rng, runReducer, startRun } from '../engine';
+import { decodeAction, emptyProfile, encodeAction, formatRunLog, lockedCardIds, parseRunLog, replayRun, Rng, runReducer, startRun } from '../engine';
+import { PROGRESSION } from '../data/progression';
 import type { RunAction, RunState } from '../engine';
 import { CONTENT } from '../data/content';
 import { greedyBot } from './bots';
@@ -12,8 +13,8 @@ import { chooseRunAction } from './runBots';
 import { replayReport } from './replayReport';
 
 /** Plays a run with the greedy fight bot and random run choices, recording every accepted action. */
-function recordRun(classId: string, seed: number): { final: RunState; actions: RunAction[] } {
-  let run = startRun(classId, seed, CONTENT);
+function recordRun(classId: string, seed: number, lockedCardIds: string[] = []): { final: RunState; actions: RunAction[] } {
+  let run = startRun(classId, seed, CONTENT, { lockedCardIds });
   const rng = new Rng(seed + 1);
   const actions: RunAction[] = [];
   for (let step = 0; step < 20_000 && run.outcome === 'ongoing'; step++) {
@@ -96,6 +97,16 @@ describe('replayRun', () => {
     }
   });
 
+  it('replays runs with locked cards (the log keeps the locked list)', () => {
+    const locked = lockedCardIds(emptyProfile(), PROGRESSION);
+    const { final, actions } = recordRun('insider', 4, locked);
+    const text = formatRunLog({ build: 'test', classId: 'insider', seed: 4, result: final.outcome, actions, lockedCardIds: locked });
+    expect(text).toContain(`locked: ${locked.join(' ')}`);
+    const replay = replayRun(parseRunLog(text), CONTENT);
+    expect(replay.steps.every((s) => s.valid)).toBe(true);
+    expect(replay.final).toEqual(final);
+  });
+
   it('stops at the first action the engine rejects', () => {
     const replay = replayRun({ build: 'x', classId: 'exploit-dev', seed: 1, result: '', actions: [{ type: 'LAY_LOW' }, { type: 'LEAVE' }] }, CONTENT);
     expect(replay.steps).toHaveLength(1);
@@ -107,7 +118,8 @@ describe('replayReport', () => {
   it('narrates a full run without crashing and ends with the final state', () => {
     const { final, actions } = recordRun('exploit-dev', 5);
     const report = replayReport({ build: 'test', classId: 'exploit-dev', seed: 5, result: final.outcome, actions }, CONTENT, 'test');
-    expect(report).toContain('== Floor 1');
+    expect(report).toContain('== Act 1 floor 1');
+    expect(report).toContain('Final Target: ');
     expect(report).toContain('Play ');
     expect(report).toContain(`== End: ${final.outcome}`);
     expect(report).not.toContain('WARNING');

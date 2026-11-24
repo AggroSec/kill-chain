@@ -2,6 +2,7 @@
  * A full run: header plus whichever screen the current phase needs.
  * Only renders state and sends actions; every rule lives in src/engine.
  */
+import { useState } from 'react';
 import { runReducer } from '../../engine';
 import type { RunAction, RunContent, RunState } from '../../engine';
 import { TERMS } from '../../data/terms';
@@ -10,6 +11,10 @@ import { RunLogPanel } from '../RunLogPanel';
 import { DarkWebView } from './DarkWebView';
 import { IntelView } from './IntelView';
 import { LootView } from './LootView';
+import { getClass } from '../../data/content';
+import type { RewardsSummary } from '../profile';
+import { RunRewardsPanel } from '../progress/RunRewardsPanel';
+import { ActIntro } from './ActIntro';
 import { MapView } from './MapView';
 import type { PhaseProps } from './phaseProps';
 import { RunHeader } from './RunHeader';
@@ -25,9 +30,14 @@ interface RunViewProps {
   onNewRun: () => void;
   /** The run's log, shown on the end screen for bug reports. */
   log: { label: string; text: string };
+  /** What the finished run earned (XP, Bounties, unlocks). */
+  rewards?: RewardsSummary;
 }
 
-export function RunView({ run, seed, content, onAction, onMenu, onNewRun, log }: RunViewProps) {
+export function RunView({ run, seed, content, onAction, onMenu, onNewRun, log, rewards }: RunViewProps) {
+  // The act intro pops up once per act (UI-only state: closing it isn't a game action).
+  const [introClosedFor, setIntroClosedFor] = useState<string | null>(null);
+  const introKey = `${seed}:${run.act}`;
   const props: PhaseProps = {
     run,
     content,
@@ -50,6 +60,7 @@ export function RunView({ run, seed, content, onAction, onMenu, onNewRun, log }:
             {TERMS.newRun}
           </button>
         </section>
+        {rewards !== undefined && <RunRewardsPanel rewards={rewards} className={getClass(run.classId).name} content={content} />}
         <RunLogPanel label={log.label} text={log.text} />
       </main>
     );
@@ -72,6 +83,9 @@ export function RunView({ run, seed, content, onAction, onMenu, onNewRun, log }:
   return (
     <main className="screen">
       <RunHeader run={run} seed={seed} content={content} onMenu={onMenu} />
+      {phase.kind === 'map' && run.currentNodeId === null && introClosedFor !== introKey && (
+        <ActIntro run={run} content={content} onClose={() => setIntroClosedFor(introKey)} />
+      )}
       {phase.kind === 'map' && (
         <MapView
           run={run}

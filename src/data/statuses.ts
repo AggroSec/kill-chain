@@ -16,14 +16,14 @@ export const STATUS_LIST: readonly StatusDef[] = [
   {
     id: 'exposed',
     name: 'Exposed',
-    description: 'Takes 50% more damage from attacks. Lasts a number of turns.',
+    description: 'Takes 50% more damage from attacks. Lasts a number of turns. From Act 2, enemies can put this on you too.',
     kind: 'debuff',
     decay: 'endOfOwnerTurn',
   },
   {
     id: 'throttled',
     name: 'Throttled',
-    description: 'Deals 25% less attack damage. Lasts a number of turns.',
+    description: 'Deals 25% less attack damage. Lasts a number of turns. From Act 2, enemies can put this on you too.',
     kind: 'debuff',
     decay: 'endOfOwnerTurn',
   },
@@ -92,6 +92,39 @@ export const STATUS_LIST: readonly StatusDef[] = [
     onTurnStart: [
       { kind: 'alert', amount: -2 },
       { kind: 'block', amount: 4 },
+    ],
+  },
+  {
+    id: 'scheduled-transfer',
+    name: 'Scheduled Transfer',
+    description: 'Implant. At the start of your turn, draw 1 card.',
+    kind: 'buff',
+    decay: 'never',
+    implant: true,
+    onTurnStart: [{ kind: 'draw', count: 1 }],
+  },
+  {
+    id: 'forwarding-rule',
+    name: 'Forwarding Rule',
+    description: 'Implant. At the start of your turn, apply 1 Exposed to ALL enemies and gain 3 Block.',
+    kind: 'buff',
+    decay: 'never',
+    implant: true,
+    onTurnStart: [
+      { kind: 'applyStatus', status: 'exposed', stacks: 1, target: 'allEnemies' },
+      { kind: 'block', amount: 3 },
+    ],
+  },
+  {
+    id: 'sock-puppet',
+    name: 'Sock Puppet',
+    description: 'Implant. At the start of your turn, gain 3 Block and apply 1 Throttled to a random enemy.',
+    kind: 'buff',
+    decay: 'never',
+    implant: true,
+    onTurnStart: [
+      { kind: 'block', amount: 3 },
+      { kind: 'applyStatus', status: 'throttled', stacks: 1, target: 'randomEnemy' },
     ],
   },
 ];

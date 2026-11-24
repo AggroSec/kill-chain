@@ -17,8 +17,8 @@ describe('upgradeSummary', () => {
   });
 
   it('summarises number changes with what they apply to', () => {
-    expect(summary('ransomware')).toBe('+4 damage, +2 damage');
-    expect(summary('impair-defenses')).toBe('+3 Block, Alert −3→−4');
+    expect(summary('ransomware')).toBe('+5 damage, +2 damage');
+    expect(summary('impair-defenses')).toBe('+4 Block, Alert −3→−4');
   });
 
   it('has a summary for every upgradable card', () => {

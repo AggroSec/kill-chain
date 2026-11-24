@@ -304,3 +304,83 @@ No rule or content numbers changed in this milestone. 2,000 runs per class per b
 - guided fight steps
 
 A unit test checks that the hand fan keeps 1–10 cards on screen at all three widths.
+
+## Milestone 5: Acts 2–3
+
+**Date:** 2026-11-24 · **Branch:** `milestone-5-acts`
+
+AggroSec approved the plan and every design choice in #22.
+
+### What was built
+
+- **Three acts of 13 floors.** Boss Loot between acts, then a new map. Each new act recovers half your missing OpSec. Only the Act 3 boss wins the run.
+- **Act 2, Internal:**
+  - Enemies: SIEM, Honeytoken, Group Policy, Privileged Access Mgmt, Next-Gen EDR.
+  - Hardened Target: Tier 0 Admin.
+  - Boss: the **Domain Controller** with Kerberos and GPO Server. It heals its adds.
+- **Final Targets (Act 3),** drawn at the start of the run and shown in the Act 1 intro:
+  - **OT Facility.** Its boss, the **Safety Instrumented System**, trips at Detected Alert.
+  - **Cloud Tenant.** Its boss, the **Identity Provider**, revokes your Implants and Throttles you.
+  - Adding a target is data only.
+- **Enemies can now:**
+  - heal allies
+  - Throttle you or leave you Exposed (shown as chips under your OpSec)
+  - use moves that only come up at certain Alert levels
+- **Class passives:**
+  - Social Engineer, **Smooth Talker:** a random enemy is Stalled for its first turn.
+  - Exploit Dev, **Zero-Day Broker:** a bonus Private/0-day pick every 3rd win and after Hardened Targets.
+  - Insider, **Trusted Access:** each turn's Chain starts at Initial Access. 4 Cycles, 50 OpSec, +1 damage taken.
+- **The Insider:** 25 cards (starter + 20-card pool). Unlocked by the Bounty "First Exfil".
+- **Class levels and Bounties:**
+  - Every finished run gives the class XP. Levels at 40 / 120 / 250 unlock 2 cards each.
+  - 9 Bounties, with rewards shown up front.
+  - New screens: the class picker (levels, XP, passives, locked Insider), the **Bounties** screen, and rewards on the run-end screen.
+- **3 Intel events** for Acts 2–3 and **6 new Tools**.
+- **Simulator:** full 3-act runs, share of runs reaching each act, win rate per Final Target, `--class` and `--locked`.
+- **Replays** narrate act changes, the Final Target and bonus picks. Run logs record locked cards so replays stay exact.
+- **Old saves:** an Act 1 run saved on the old build keeps going.
+
+### What to playtest on a phone
+
+1. **Start a run:** read the Final Target in the Act 1 pop-up. Does knowing it change your picks?
+2. **Beat the Act 1 boss:** boss Loot, then the Act 2 pop-up with OpSec recovered. Is the jump in difficulty fair?
+3. **Domain Controller:** does kill order feel like a real choice (adds first vs the Controller)?
+4. **Final Target:** OT Facility (stay quiet) vs Cloud Tenant (Implants get revoked). Does each feel different?
+5. **Exploit Dev:** the bonus pick after every 3rd win. Does it show up when you expect?
+6. **Finish a run** (win or lose): check the XP, level-up and Bounty summary, then the Bounties screen.
+7. **Win once,** then try the **Insider**. Does Trusted Access read clearly when the first card of a turn shows ▲?
+8. **Throttled/Exposed on you:** are the chips under your OpSec noticeable enough?
+
+### Known issues
+
+- The chain bot plays the Insider badly (25% vs 42% for the greedy bot), so the Insider's real win rate is uncertain. Playtests will tell.
+- Once reached, Act 3 is easier than Acts 1–2 (74–96%). The difficulty is in the Act 1 and Act 2 bosses.
+- Card numbers in the hand don't show your own Throttled (−25%). The chip under OpSec explains it.
+- A full run is about 39 floors, so run logs are about 3 times longer. They still fit a GitHub issue.
+- Practice mode lists every encounter from all acts with the starter Arsenal, so Act 3 practice fights are very hard on purpose.
+
+### Balance numbers
+
+2,000 runs per class per bot, full 3-act runs (details and history in BALANCE.md):
+
+| Bot | Class | Everything unlocked | Fresh profile |
+| --- | --- | --- | --- |
+| greedy | Social Engineer | 40% | 45% |
+| greedy | Exploit Dev | 41% | 37% |
+| greedy | Insider | 42% | 32% |
+| chain | Social Engineer | 41% | 37% |
+| chain | Exploit Dev | 39% | 34% |
+| chain | Insider | 25% | 11% |
+
+Final Targets are 2–7 points apart for each class. Random bot: 0%. No turn caps outside the Social Engineer (under 3%) and no stuck runs.
+
+### Layouts checked
+
+360, 390 and 430px (green, amber and soft themes):
+- main menu with the class picker (fresh profile, and the Insider unlocked)
+- Bounties screen
+- Act 1 and Act 3 intro pop-ups, and the Act 2 map
+- bonus Loot pick
+- run-end rewards
+- a fight while Throttled
+

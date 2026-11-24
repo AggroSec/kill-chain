@@ -115,9 +115,8 @@ function phaseOpenLines(run: RunState, content: RunContent): string[] {
       return turnLines(phase.combat, content);
     case 'loot': {
       const tool = phase.loot.toolId === null ? '' : `, Tool ${content.tools[phase.loot.toolId]?.name ?? phase.loot.toolId}`;
-      return [
-        `  Loot: +${phase.loot.crypto} Crypto${tool}; offered ${phase.loot.cardChoices.map((id, i) => `[${i}] ${cardName(content, id)}`).join(', ')}`,
-      ];
+      const label = phase.loot.bonus === true ? 'Bonus pick (class passive)' : `Loot: +${phase.loot.crypto} Crypto${tool}`;
+      return [`  ${label}; offered ${phase.loot.cardChoices.map((id, i) => `[${i}] ${cardName(content, id)}`).join(', ')}`];
     }
     case 'intel': {
       const event = content.events[phase.eventId];
@@ -132,7 +131,9 @@ function phaseOpenLines(run: RunState, content: RunContent): string[] {
     case 'safehouse':
       return ['  Safehouse'];
     case 'map':
-      return [];
+      // A new act starts on the map with nothing chosen yet.
+      if (run.actStart === null) return [];
+      return ['', `==== Act ${run.act} starts. Recovered ${run.actStart.healed} OpSec (now ${run.opsec}/${run.maxOpsec}). ====`];
   }
 }
 
@@ -146,7 +147,7 @@ function describeStep(before: RunState, after: RunState, action: RunAction, cont
       const node = after.map.nodes[action.nodeId];
       const kind = node === undefined ? '?' : NODE_NAMES[node.kind];
       const what = afterCombat === null ? '' : `: ${afterCombat.enemies.map((_, i) => enemyName(content, afterCombat, i)).join(' + ')}`;
-      lines.push('', `== Floor ${node?.floor ?? '?'} ${kind}${what} (OpSec ${after.opsec}/${after.maxOpsec}, Crypto ${after.crypto}) ==`);
+      lines.push('', `== Act ${after.act} floor ${node?.floor ?? '?'} ${kind}${what} (OpSec ${after.opsec}/${after.maxOpsec}, Crypto ${after.crypto}) ==`);
       lines.push(...phaseOpenLines(after, content));
       return lines;
     }
@@ -178,8 +179,9 @@ function describeStep(before: RunState, after: RunState, action: RunAction, cont
     }
     default: {
       lines.push(`  ${action.type}: ${runDiff(before, after, content)}`);
-      // Some choices open a new phase (an Intel event can start a fight).
-      if (after.phase.kind !== before.phase.kind) lines.push(...phaseOpenLines(after, content));
+      // Some choices open a new phase (an Intel event can start a fight, Loot can lead to a bonus pick or a new act).
+      const bonusOpened = after.phase.kind === 'loot' && after.phase.loot.bonus === true;
+      if (after.phase.kind !== before.phase.kind || bonusOpened || after.act !== before.act) lines.push(...phaseOpenLines(after, content));
       return lines;
     }
   }
@@ -198,6 +200,8 @@ export function replayReport(log: RunLog, content: RunContent, currentBuild: str
 
   const { start, steps, final } = replayRun(log, content);
   lines.push(`Start: OpSec ${start.opsec}/${start.maxOpsec}, Crypto ${start.crypto}, Arsenal: ${start.deck.map((id) => cardName(content, id)).join(', ')}`);
+  lines.push(`Final Target: ${content.targets[start.finalTargetId]?.name ?? start.finalTargetId}`);
+  if ((log.lockedCardIds ?? []).length > 0) lines.push(`Locked cards: ${(log.lockedCardIds ?? []).length}`);
   for (const step of steps) {
     if (!step.valid) {
       lines.push('', `!! Action ${step.index} was rejected by the engine. The log and this build don't match; replay stopped here.`);
@@ -212,7 +216,7 @@ export function replayReport(log: RunLog, content: RunContent, currentBuild: str
 function finalStateLines(run: RunState, content: RunContent): string[] {
   const floor = run.currentNodeId === null ? 0 : (run.map.nodes[run.currentNodeId]?.floor ?? 0);
   const lines = [
-    `== End: ${run.outcome}, floor ${floor}, OpSec ${run.opsec}/${run.maxOpsec}, Crypto ${run.crypto} ==`,
+    `== End: ${run.outcome}, act ${run.act} floor ${floor}, OpSec ${run.opsec}/${run.maxOpsec}, Crypto ${run.crypto} ==`,
     `Arsenal (${run.deck.length}): ${run.deck.map((id) => cardName(content, id)).join(', ')}`,
     `Tools: ${run.tools.map((id) => content.tools[id]?.name ?? id).join(', ') || 'none'}`,
   ];

@@ -8,7 +8,7 @@
  * card. A card's value is the average OpSec it saves per fight (positive =
  * the card helps). Same seeds on both sides keep the comparison fair.
  */
-import { classCardPool, DEFAULT_MAX_CYCLES } from '../engine';
+import { classCardPool, combatModifiersForClass, DEFAULT_MAX_CYCLES } from '../engine';
 import type { CombatSetup, RunContent } from '../engine';
 import type { Bot } from './bots';
 import { runFights } from './fightSim';
@@ -25,8 +25,9 @@ function averageOpsecLost(deck: readonly string[], classId: string, content: Run
       deck,
       opsec: cls.maxOpsec,
       maxOpsec: cls.maxOpsec,
-      maxCycles: DEFAULT_MAX_CYCLES,
+      maxCycles: cls.maxCycles ?? DEFAULT_MAX_CYCLES,
       enemies: encounter.enemies,
+      modifiers: combatModifiersForClass(classId, content),
     };
     total += runFights(setup, fights, bot, content).avgOpsecLost;
   }
@@ -34,11 +35,17 @@ function averageOpsecLost(deck: readonly string[], classId: string, content: Run
 }
 
 /** OpSec saved per fight by adding one copy of each pool card to the starter Arsenal. */
-export function measureCardValues(classId: string, content: RunContent, bot: Bot, fightsPerEncounter = 40): CardValues {
+export function measureCardValues(
+  classId: string,
+  content: RunContent,
+  bot: Bot,
+  fightsPerEncounter = 40,
+  lockedCardIds: readonly string[] = [],
+): CardValues {
   const starter = content.classes[classId]?.starterDeck ?? [];
   const baseline = averageOpsecLost(starter, classId, content, bot, fightsPerEncounter);
   const values = new Map<string, number>();
-  for (const card of classCardPool(content, classId)) {
+  for (const card of classCardPool(content, classId, lockedCardIds)) {
     values.set(card.id, baseline - averageOpsecLost([...starter, card.id], classId, content, bot, fightsPerEncounter));
   }
   return values;

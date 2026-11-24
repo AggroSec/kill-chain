@@ -4,11 +4,11 @@ A browser-playable deckbuilder roguelite with a cybersecurity theme. You're a re
 
 Built touch-first for phones, playable on desktop too.
 
-> **Status:** early development (Milestone 2: content system). See [`docs/CHECKPOINTS.md`](docs/CHECKPOINTS.md).
+> **Status:** in development (Milestone 5: three acts, Final Targets, the Insider, class levels and Bounties). See [`docs/CHECKPOINTS.md`](docs/CHECKPOINTS.md).
 
 ## Play
 
-The game lives at **https://aggrosec.github.io/kill-chain/**. It's a work in progress, so expect debug screens until Milestone 4.
+The game lives at **https://aggrosec.github.io/kill-chain/**. It's a work in progress: playable on a phone, with polish (animations, sound, a title screen) coming in Milestone 6.
 
 **Found a bug or want a run looked at?** Open Menu → Run Logs (or scroll down on the Burned/Exfiltrated screen), then tap Copy Log or Report on GitHub. A run log is your seed plus every move you made, so the run can be replayed exactly.
 

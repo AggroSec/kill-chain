@@ -12,9 +12,8 @@ describe('card text is generated from data', () => {
   it('covers damage, block and keywords', () => {
     expect(cardText('brute-force')).toBe('Deal 6 damage.');
     expect(cardText('obfuscate')).toBe('Gain 5 Block.');
-    expect(cardText('exploit-public-app')).toBe(
-      'Deal 6 damage. Exploit: consume all Vuln, deal 5 damage per stack. Noisy 1.',
-    );
+    expect(cardText('exploit-public-app')).toBe('Deal 6 damage. Exploit: consume all Vuln, deal 6 damage per stack.');
+    expect(cardText('exfiltration-over-c2')).toBe('Deal 13 damage. Noisy 2.');
   });
 
   it('covers conditions, statuses and implants', () => {

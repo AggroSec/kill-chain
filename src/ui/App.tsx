@@ -1,11 +1,13 @@
 /**
- * Milestone 3 app: a main menu, full runs (map, fights, Loot, Safehouse,
- * Dark Web, Intel), and the practice fight screen from Milestone 2.
- * The real touch-first UI arrives in Milestone 4.
+ * The app: main menu, full runs (map, fights, Loot, Safehouse, Dark Web,
+ * Intel), class levels and Bounties, the guided fight, and practice fights.
  */
 import { useState } from 'react';
-import { combatReducer, runReducer, startCombat, startRun } from '../engine';
-import type { CombatAction, CombatState, RunAction } from '../engine';
+import { combatReducer, isClassUnlocked, lockedCardIds, runReducer, startCombat, startRun } from '../engine';
+import type { CombatAction, CombatState, Profile, RunAction } from '../engine';
+import { PROGRESSION } from '../data/progression';
+import { loadProfile, recordFinishedRun } from './profile';
+import { BountiesView } from './progress/BountiesView';
 import { currentTip, startTutorial, TUTORIAL_SEED } from '../data/tutorial';
 import { CLASSES, CONTENT, ENCOUNTERS, starterFight } from '../data/content';
 import { CLASS_LIST } from '../data/classes';
@@ -46,6 +48,7 @@ type Screen =
   | { kind: 'glossary' }
   | { kind: 'settings' }
   | { kind: 'credits' }
+  | { kind: 'bounties' }
   | { kind: 'tutorial'; state: CombatState; selectedCardId: string | null }
   | { kind: 'practice'; fight: Fight }
   | { kind: 'run'; saved: SavedRun };
@@ -65,7 +68,10 @@ function screenFromUrl(): Screen {
     if (classId === null || CLASSES[classId] === undefined || !Number.isInteger(seed) || params.get('seed') === null) {
       return { kind: 'menu' };
     }
-    if (encounterId === null) return { kind: 'run', saved: { seed, run: startRun(classId, seed, CONTENT), actions: [] } };
+    if (encounterId === null) {
+      const run = startRun(classId, seed, CONTENT, { lockedCardIds: lockedCardIds(loadProfile(), PROGRESSION) });
+      return { kind: 'run', saved: { seed, run, actions: [] } };
+    }
     if (ENCOUNTERS[encounterId] === undefined) return { kind: 'menu' };
     return { kind: 'practice', fight: { seed, state: startCombat(starterFight(classId, encounterId), seed, CONTENT) } };
   } catch {
@@ -77,8 +83,11 @@ export function App() {
   const [screen, setScreen] = useState<Screen>(screenFromUrl);
   const [classId, setClassId] = useState(CLASS_LIST[0]?.id ?? '');
   const [encounterId, setEncounterId] = useState(ENCOUNTER_LIST[0]?.id ?? '');
-  const [savedRun, setSavedRun] = useState<SavedRun | null>(loadRun);
+  const [savedRun, setSavedRun] = useState<SavedRun | null>(() => loadRun(CONTENT));
   const [settings, setSettings] = useState<Settings>(loadSettings);
+  const [profile, setProfile] = useState<Profile>(loadProfile);
+  // A locked class can't be picked (e.g. a stale choice after clearing data).
+  const pickedClass = isClassUnlocked(classId, profile, PROGRESSION) ? classId : (PROGRESSION.startingClasses[0] ?? classId);
   /** The in-game menu is open on top of a run or practice fight. */
   const [paused, setPaused] = useState(false);
 
@@ -119,16 +128,26 @@ export function App() {
     if (savedRun !== null) archiveLog({ label: runLabel(savedRun), text: runLogText(savedRun) });
     clearRun();
     const seed = randomSeed();
-    showRun({ seed, run: startRun(classId, seed, CONTENT), actions: [] });
+    const run = startRun(pickedClass, seed, CONTENT, { lockedCardIds: lockedCardIds(profile, PROGRESSION) });
+    showRun({ seed, run, actions: [] });
   }
 
   function runAction(action: RunAction) {
     if (screen.kind !== 'run') return;
-    const { seed, run, actions } = screen.saved;
+    const { seed, run, actions, rewards } = screen.saved;
     const next = runReducer(run, action, CONTENT);
     if (next === run) return;
     // Record only accepted actions; old saves without a list stay without one.
-    showRun({ seed, run: next, ...(actions !== undefined ? { actions: [...actions, action] } : {}) });
+    const saved: SavedRun = { seed, run: next, ...(actions !== undefined ? { actions: [...actions, action] } : {}) };
+    if (rewards !== undefined) {
+      saved.rewards = rewards;
+    } else if (next.outcome !== 'ongoing') {
+      // The run just ended: add its XP and Bounties to the profile, once.
+      const recorded = recordFinishedRun(profile, next, CONTENT.config, PROGRESSION);
+      setProfile(recorded.profile);
+      saved.rewards = recorded.rewards;
+    }
+    showRun(saved);
   }
 
   function practiceAction(action: CombatAction) {
@@ -162,8 +181,10 @@ export function App() {
         const canContinue = savedRun !== null && savedRun.run.outcome === 'ongoing';
         return (
           <MainMenu
-            classId={classId}
+            classId={pickedClass}
             onClassChange={setClassId}
+            profile={profile}
+            onBounties={() => setScreen({ kind: 'bounties' })}
             onStartRun={newRun}
             {...(canContinue ? { onContinue: () => setScreen({ kind: 'run', saved: savedRun }) } : {})}
             onPractice={() => setScreen({ kind: 'practiceSetup' })}
@@ -189,6 +210,12 @@ export function App() {
             <SettingsView theme={settings.theme} onThemeChange={changeTheme} />
           </InfoScreen>
         );
+      case 'bounties':
+        return (
+          <InfoScreen title={TERMS.bounties} onBack={toMenu}>
+            <BountiesView profile={profile} progression={PROGRESSION} content={CONTENT} />
+          </InfoScreen>
+        );
       case 'credits':
         return (
           <InfoScreen title={TERMS.credits} onBack={toMenu}>
@@ -200,13 +227,14 @@ export function App() {
       case 'practiceSetup':
         return (
           <FightSetup
-            classId={classId}
+            classId={pickedClass}
+            profile={profile}
             encounterId={encounterId}
             onClassChange={setClassId}
             onEncounterChange={setEncounterId}
             onStart={() => {
               const seed = randomSeed();
-              setScreen({ kind: 'practice', fight: { seed, state: startCombat(starterFight(classId, encounterId), seed, CONTENT) } });
+              setScreen({ kind: 'practice', fight: { seed, state: startCombat(starterFight(pickedClass, encounterId), seed, CONTENT) } });
             }}
           />
         );
@@ -250,6 +278,7 @@ export function App() {
             onMenu={() => setPaused(true)}
             onNewRun={() => setScreen({ kind: 'menu' })}
             log={{ label: runLabel(screen.saved), text: runLogText(screen.saved) }}
+            {...(screen.saved.rewards !== undefined ? { rewards: screen.saved.rewards } : {})}
           />
         );
     }

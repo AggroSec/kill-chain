@@ -13,8 +13,13 @@ import { TACTICS_IN_ORDER } from './contentTypes';
 import type { Tactic } from './contentTypes';
 import type { ChainState } from './types';
 
-export function emptyChain(): ChainState {
-  return { count: 0, lastTacticIndex: null };
+/**
+ * The Chain at the start of a turn. `startIndex` is a tactic the turn counts
+ * as already played (the Insider's Trusted Access starts at Initial Access),
+ * or null for the normal empty Chain.
+ */
+export function emptyChain(startIndex: number | null = null): ChainState {
+  return { count: 0, lastTacticIndex: startIndex };
 }
 
 /** Position of a tactic in the kill chain (reconnaissance = 0 ... impact = 13). */

@@ -427,3 +427,62 @@ No rule or content numbers changed. The engine only gained display helpers (`cha
 | greedy | Exploit Dev | 45% | 12.4 | 0 | 0 | 0 |
 | chain | Social Engineer | 45% | 12.9 | 3 | 0 | 0 |
 | chain | Exploit Dev | 46% | 12.3 | 0 | 0 | 0 |
+
+## Milestone 5: Full 3-act runs
+
+2,000 runs per class per bot, full 3-act runs. `npm run sim` (everything unlocked) and `npm run sim -- --locked` (a fresh profile: no level or Bounty cards). The random bot wins 0% throughout.
+
+### Win rate
+
+| Bot | Class | Everything unlocked | Fresh profile | Reached Act 2 / 3 (unlocked) |
+| --- | --- | --- | --- | --- |
+| greedy | Social Engineer | 40% | 45% | 70% / 46% |
+| greedy | Exploit Dev | 41% | 37% | 82% / 55% |
+| greedy | Insider | 42% | 32% | 65% / 45% |
+| chain | Social Engineer | 41% | 37% | 71% / 48% |
+| chain | Exploit Dev | 39% | 34% | 80% / 52% |
+| chain | Insider | 25% | 11% | 55% / 29% |
+
+### Per Final Target (everything unlocked)
+
+"Act 3 win" is the share of runs that reached Act 3 and won, which shows how hard the target itself is.
+
+| Bot | Class | Cloud Tenant overall / Act 3 | OT Facility overall / Act 3 |
+| --- | --- | --- | --- |
+| greedy | Social Engineer | 36% / 81% | 43% / 92% |
+| greedy | Exploit Dev | 43% / 74% | 40% / 77% |
+| greedy | Insider | 41% / 91% | 43% / 96% |
+| chain | Social Engineer | 38% / 80% | 45% / 93% |
+| chain | Exploit Dev | 40% / 75% | 38% / 74% |
+| chain | Insider | 24% / 79% | 27% / 94% |
+
+Targets differ by 2–7 points overall. The OT Facility rewards quiet play (Social Engineer, Insider), and the Cloud Tenant is harder on them. That fits the theme.
+
+### What ends runs (fresh profile, greedy)
+
+Bosses are the walls. Act 1's Incident Response Team (18–30% of runs), then the Domain Controller (16–18%). Act 3 bosses end 1–4%. Normal fights rarely end runs.
+
+### How we got here (greedy / chain, 300–600 runs per variant)
+
+| Step | SE | ED | Insider |
+| --- | --- | --- | --- |
+| First build (no tuning) | 39% / 43% | 14% / 10% | 3% / 1% |
+| Domain Controller softer | 56% / 60% | 17% / 14% | 5% / 1% |
+| + ED cards: Noisy −1, Exploit +1 per stack | 56% / 60% | 21% / 20% | |
+| + ED non-starter damage and Block +20% | 55% / 57% | 46% / 46% | |
+| + Act 3 normals and elites +15%, SIS and IdP up | 54% / 56% | 40% / 41% | 5% / 1% |
+| + Insider cards +25% damage and Block | | | 38% / 22% |
+| + SE unlockables Compromise Accounts and Spearphishing Attachment nerfed | 38% / 40% | | |
+
+Findings along the way:
+- **The class passives are strong in Act 1.** Without them, Act 1 clear rates were SE 57% / ED 46%. With them, 77% / 60%. Smooth Talker's turn-1 Stall is worth a lot against the 3-enemy boss.
+- **Scaling Act 3 up hurts the Exploit Dev most.** Stall and Throttle scale with stronger enemies; flat damage doesn't. So Act 3 got only a modest bump, and the Exploit Dev got card buffs instead.
+- **The Insider's 50 OpSec and +1 damage taken** (AggroSec's numbers) were kept. Tested for comparison only: 60 OpSec alone gave 12% / 4% before the card buffs, and 60 OpSec with no extra damage 28% / 10%. The card buffs did more, so the class numbers didn't need to change.
+- **Compromise Accounts was the strongest card in the game** (79% pick-to-win) because its Stall repeated every reshuffle. Both unlockable SE Stall cards are now Burners, per "unlocks add variety, not power". Unlocking everything changes win rates by −5 to +14 points, mostly for the Insider, whose unlocks fill gaps (Block, AoE).
+- **Suspected infinites:** the simulator's plays-per-turn counter didn't reset between fights. The Insider often ends a fight on a card play, so it was flagged hundreds of times. After the fix, 2 runs in 2,000 (fresh profile) are flagged. Both are big but finite turns from several Burner draw and Cycle cards. Archive Collected Data could loop for real (it refunded its own Cost and drew), so it's now a 0-Cost Burner.
+
+### Known gaps
+
+- **The chain bot plays the Insider badly** (25% unlocked, 11% fresh vs 42% / 32% greedy). Its lookahead doesn't know about Trusted Access's Chain start, so it misjudges which cards build Chain. Real players should land near the greedy number. Worth watching in playtests.
+- **Act 3 is easier than Acts 1–2** for runs that reach it (74–96%). The difficulty sits in the Act 1 and Act 2 bosses. Making Act 3 harder pushes the Exploit Dev down first.
+- **Exfiltration Over Web Service** (SE 0-day) is at 66% pick-to-win with a fresh profile, just over the line. Left alone, since it's one point over and a rare drop.

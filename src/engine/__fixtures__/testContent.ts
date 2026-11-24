@@ -84,7 +84,17 @@ const enemyList: EnemyDef[] = [
   enemy('commander', 30, [{ id: 'rally', name: 'Rally', effects: [{ kind: 'buffAllies', status: 'hardened', stacks: 1 }], weight: 1 }]),
   enemy('honeypot', 30, [{ id: 'idle', name: 'Idle', effects: [{ kind: 'block', amount: 0 }], weight: 1 }], {
     onAttacked: [{ kind: 'raiseAlert', amount: 2 }],
-  }),
+  }),  // Act 2+ mechanics.
+  enemy('healer', 30, [{ id: 'mend', name: 'Mend', effects: [{ kind: 'healAllies', amount: 5 }], weight: 1 }]),
+  enemy('throttler', 30, [{ id: 'record', name: 'Record', effects: [{ kind: 'debuffPlayer', status: 'throttled', stacks: 1 }], weight: 1 }]),
+  enemy('exposer', 30, [
+    { id: 'scan', name: 'Scan', effects: [{ kind: 'debuffPlayer', status: 'exposed', stacks: 1 }, { kind: 'attack', damage: 10 }], weight: 1 },
+  ]),
+  // Quiet: always "calm". Detected or higher: always "trip".
+  enemy('tripwire', 30, [
+    { id: 'calm', name: 'Calm', effects: [{ kind: 'block', amount: 1 }], weight: 1, whenAlert: { atMost: 'noisy' } },
+    { id: 'trip', name: 'Trip', effects: [{ kind: 'attack', damage: 20 }], weight: 1, whenAlert: { atLeast: 'detected' } },
+  ]),
 ];
 
 const statusList: StatusDef[] = [
@@ -170,6 +180,8 @@ export function stateWithHand(hand: string[], overrides: Partial<CombatSetup> = 
       };
     }),
     noisyReduction: 0,
+    damageTakenPerHit: 0,
+    chainStartIndex: null,
     rngState: 12345,
   };
   return state;

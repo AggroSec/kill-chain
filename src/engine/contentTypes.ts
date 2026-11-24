@@ -42,9 +42,10 @@ export type AlertLevelId = 'quiet' | 'noisy' | 'detected' | 'lockdown';
  * Who an effect applies to.
  * - target: the enemy the Operator picked when playing the card
  * - allEnemies: every living enemy
+ * - randomEnemy: one random living enemy (used by start-of-fight effects like Smooth Talker)
  * - self: the Operator
  */
-export type EffectTarget = 'target' | 'allEnemies' | 'self';
+export type EffectTarget = 'target' | 'allEnemies' | 'randomEnemy' | 'self';
 
 /** A single thing a card does when played. Effects resolve in list order. */
 export type CardEffect =
@@ -159,7 +160,11 @@ export type EnemyEffect =
   /** Add stacks of a status to every OTHER living enemy (e.g. the Incident Commander). */
   | { kind: 'buffAllies'; status: string; stacks: number }
   /** Destroy up to `count` of the Operator's Implants (oldest first). */
-  | { kind: 'removeImplants'; count: number };
+  | { kind: 'removeImplants'; count: number }
+  /** Restore Integrity to every OTHER living enemy (e.g. the Domain Controller re-issuing tickets). */
+  | { kind: 'healAllies'; amount: number }
+  /** Add stacks of a debuff to the Operator (Throttled: your attacks deal less; Exposed: you take more). */
+  | { kind: 'debuffPlayer'; status: string; stacks: number };
 
 /** One move in an enemy's repertoire. Its effects double as the shown intent. */
 export interface EnemyMove {
@@ -170,6 +175,11 @@ export interface EnemyMove {
   weight: number;
   /** Max times this move can be picked in a row. Omit for no limit. */
   maxInARow?: number;
+  /**
+   * Only picked when Alert is in this range (checked when the intent is rolled).
+   * e.g. the Safety Instrumented System only "trips" at Detected or higher.
+   */
+  whenAlert?: { atLeast?: AlertLevelId; atMost?: AlertLevelId };
 }
 
 export interface EnemyDef {

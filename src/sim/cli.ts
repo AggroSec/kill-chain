@@ -2,15 +2,19 @@
  * `npm run sim`: headless balance simulator. Prints a Markdown report.
  *
  * Modes:
- *   (default)       full Act 1 runs per class per bot (default 2,000 runs)
+ *   (default)       full 3-act runs per class per bot (default 2,000 runs)
  *   --mode fights   single fights: each starter Arsenal vs every encounter
  *
  * Options:
  *   --runs N        runs per class per bot (run mode, default 2000)
  *   --fights N      fights per class x encounter x bot (fight mode, default 300)
  *   --bot NAME      only one bot (random | greedy | chain)
+ *   --class ID      only one class (social-engineer | exploit-dev | insider)
+ *   --locked        play with a fresh profile's locked cards (default: everything unlocked)
  */
+import { emptyProfile, lockedCardIds } from '../engine';
 import { CLASS_LIST } from '../data/classes';
+import { PROGRESSION } from '../data/progression';
 import { CONTENT, starterFight } from '../data/content';
 import { ENCOUNTER_LIST } from '../data/encounters';
 import { BOTS } from './bots';
@@ -31,10 +35,14 @@ export function main(args: readonly string[]): string {
   const runs = Number(readFlag(args, 'runs') ?? 2000);
   if (!Number.isInteger(runs) || runs <= 0) throw new Error('--runs must be a positive integer');
   const botFilter = readFlag(args, 'bot');
+  const classFilter = readFlag(args, 'class');
+  const classIds = CLASS_LIST.map((c) => c.id).filter((id) => classFilter === undefined || id === classFilter);
+  if (classIds.length === 0) throw new Error(`Unknown class "${classFilter ?? ''}"`);
   const { lines, warnings } = runReport(CONTENT, {
     runs,
     ...(botFilter !== undefined ? { botFilter } : {}),
-    classIds: CLASS_LIST.map((c) => c.id),
+    classIds,
+    lockedCardIds: args.includes('--locked') ? lockedCardIds(emptyProfile(), PROGRESSION) : [],
     className: (id) => CLASS_LIST.find((c) => c.id === id)?.name ?? id,
   });
   lines.push('### Warnings', '');

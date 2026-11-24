@@ -4,8 +4,9 @@
  * Every read and write is wrapped in try/catch: private browsing or full
  * storage just means no save, never a crash.
  */
-import { formatRunLog } from '../engine';
-import type { RunAction, RunState } from '../engine';
+import { formatRunLog, startRun } from '../engine';
+import type { RunAction, RunContent, RunState } from '../engine';
+import type { RewardsSummary } from './profile';
 
 /** Bump this when RunState changes shape, so old saves are ignored instead of breaking. */
 const SAVE_KEY = 'kill-chain.run.v1';
@@ -25,6 +26,8 @@ export interface SavedRun {
    * its seed. Missing on saves made before run logs existed.
    */
   actions?: RunAction[];
+  /** Set once the finished run's XP and Bounties are added to the profile (so it only happens once). */
+  rewards?: RewardsSummary;
 }
 
 /** An archived run log: the text plus a label for the list. */
@@ -33,17 +36,37 @@ export interface LogEntry {
   text: string;
 }
 
-export function loadRun(): SavedRun | null {
+export function loadRun(content: RunContent): SavedRun | null {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
     if (raw === null) return null;
     const parsed = JSON.parse(raw) as SavedRun;
     // Light sanity check; a malformed save is treated as no save.
     if (typeof parsed.seed !== 'number' || typeof parsed.run.classId !== 'string') return null;
-    return parsed;
+    return { ...parsed, run: upgradeSavedRun(parsed.run, parsed.seed, content) };
   } catch {
     return null;
   }
+}
+
+/**
+ * Fills in fields added after a save was made (Milestone 5 added acts,
+ * Final Targets, unlocks and Bounty stats), so an Act 1 run saved by an
+ * older build keeps going. Its log won't replay exactly on the new build.
+ */
+export function upgradeSavedRun(run: Partial<RunState> & Pick<RunState, 'classId'>, seed: number, content: RunContent): RunState {
+  const fresh = startRun(run.classId, seed, content);
+  return {
+    ...fresh,
+    ...run,
+    finalTargetId: run.finalTargetId ?? fresh.finalTargetId,
+    actStart: run.actStart ?? null,
+    fightsWon: run.fightsWon ?? 0,
+    pendingBonusChoices: run.pendingBonusChoices ?? [],
+    lockedCardIds: run.lockedCardIds ?? [],
+    peakAlert: run.peakAlert ?? 0,
+    bossesBeaten: run.bossesBeaten ?? [],
+  };
 }
 
 export function saveRun(saved: SavedRun): void {
@@ -84,6 +107,8 @@ export function runLogText(saved: SavedRun): string {
     classId: saved.run.classId,
     seed: saved.seed,
     result: resultText(saved.run),
+    // Old saves have no locked list; nothing was lockable then.
+    lockedCardIds: saved.run.lockedCardIds ?? [],
     actions: saved.actions ?? null,
     // Old saves have no actions; include the final state so there's still something to look at.
     ...(saved.actions === undefined ? { state: saved.run } : {}),

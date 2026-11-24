@@ -6,6 +6,10 @@
 import type { RunConfig } from '../engine';
 
 export const RUN_CONFIG: RunConfig = {
+  // Act 1 Perimeter, Act 2 Internal, Act 3 the drawn Final Target (AggroSec, #22).
+  acts: 3,
+  // Each new act starts by recovering half of your missing OpSec (#22).
+  actHealPercentOfMissing: 50,
   floors: 12,
   lanes: 4,
   // Enough walks to give real route choices without filling every lane.

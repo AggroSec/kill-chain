@@ -1,11 +1,15 @@
-/** Debug screen: choose a class and an encounter. */
+/** Practice: choose an unlocked class and any encounter, then fight it with the starter Arsenal. */
+import { isClassUnlocked } from '../engine';
+import type { Profile } from '../engine';
 import { CLASS_LIST } from '../data/classes';
+import { PROGRESSION } from '../data/progression';
 import { ENCOUNTER_LIST } from '../data/encounters';
 import { CONTENT } from '../data/content';
 import { TERMS } from '../data/terms';
 
 interface FightSetupProps {
   classId: string;
+  profile: Profile;
   encounterId: string;
   onClassChange: (id: string) => void;
   onEncounterChange: (id: string) => void;
@@ -16,7 +20,7 @@ function encounterLabel(enemyIds: readonly string[]): string {
   return enemyIds.map((id) => CONTENT.enemies[id]?.name ?? id).join(' + ');
 }
 
-export function FightSetup({ classId, encounterId, onClassChange, onEncounterChange, onStart }: FightSetupProps) {
+export function FightSetup({ classId, profile, encounterId, onClassChange, onEncounterChange, onStart }: FightSetupProps) {
   const selectedClass = CLASS_LIST.find((c) => c.id === classId);
   return (
     <main className="screen setup">
@@ -25,7 +29,7 @@ export function FightSetup({ classId, encounterId, onClassChange, onEncounterCha
       <label className="field">
         <span>{TERMS.chooseClass}</span>
         <select value={classId} onChange={(e) => onClassChange(e.target.value)}>
-          {CLASS_LIST.map((cls) => (
+          {CLASS_LIST.filter((cls) => isClassUnlocked(cls.id, profile, PROGRESSION)).map((cls) => (
             <option key={cls.id} value={cls.id}>
               {cls.name}
             </option>
@@ -39,7 +43,7 @@ export function FightSetup({ classId, encounterId, onClassChange, onEncounterCha
         <select value={encounterId} onChange={(e) => onEncounterChange(e.target.value)}>
           {ENCOUNTER_LIST.map((enc) => (
             <option key={enc.id} value={enc.id}>
-              {encounterLabel(enc.enemies)} ({enc.tier})
+              {TERMS.act} {enc.act}: {encounterLabel(enc.enemies)} ({enc.tier})
             </option>
           ))}
         </select>
