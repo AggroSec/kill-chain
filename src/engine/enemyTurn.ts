@@ -32,7 +32,7 @@ export function resolveEnemyEffects(
       case 'attack': {
         const hits = effect.hits ?? 1;
         for (let hit = 0; hit < hits; hit++) {
-          const damage = enemyHitDamage(effect.damage, enemy.statuses, state.alert);
+          const damage = enemyHitDamage(effect.damage, enemy.statuses, state.alert, player.statuses, state.damageTakenPerHit);
           const { blockLeft, damageThrough } = absorbWithBlock(player.block, damage);
           player.block = blockLeft;
           player.opsec = Math.max(0, player.opsec - damageThrough);
@@ -58,6 +58,14 @@ export function resolveEnemyEffects(
         break;
       case 'removeImplants':
         removeImplants(player.statuses, content, effect.count);
+        break;
+      case 'healAllies':
+        state.enemies.forEach((ally, index) => {
+          if (index !== enemyIndex && isEnemyAlive(ally)) ally.integrity = Math.min(ally.maxIntegrity, ally.integrity + effect.amount);
+        });
+        break;
+      case 'debuffPlayer':
+        addStacks(player.statuses, effect.status, effect.stacks);
         break;
     }
   }
@@ -92,6 +100,6 @@ export function runEnemyTurn(state: CombatState, rng: Rng, content: ContentRegis
   // Roll what each enemy will do next turn, so the Operator can see it.
   for (const enemy of state.enemies) {
     if (!isEnemyAlive(enemy)) continue;
-    enemy.intentMoveId = chooseNextMove(enemy, getEnemyDef(content, enemy.defId), rng);
+    enemy.intentMoveId = chooseNextMove(enemy, getEnemyDef(content, enemy.defId), rng, state.alert);
   }
 }

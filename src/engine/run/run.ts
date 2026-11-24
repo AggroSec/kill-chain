@@ -11,19 +11,30 @@
 import { combatReducer } from '../combat';
 import { Rng } from '../rng';
 import { pickEncounter, startMapFight, startRunCombat } from './fights';
-import { rollDarkWebStock, rollLoot, wipePrice } from './loot';
+import { rollCardChoices, rollDarkWebStock, rollLoot, wipePrice } from './loot';
 import { generateMap, reachableNodeIds } from './map';
 import { applyRunEffects, deckIndexValidFor, gainTool, healOpsec, runEffectsNeedDeckIndex, upgradeCard, wipeCard } from './runEffects';
 import type { NodeKind, RunAction, RunContent, RunPhase, RunState } from './runTypes';
 
-export function startRun(classId: string, seed: number, content: RunContent): RunState {
+/** Choices made outside the run that shape it (from the player's unlocks). */
+export interface RunOptions {
+  /** Cards the player hasn't unlocked: never offered during this run. */
+  lockedCardIds?: readonly string[];
+}
+
+export function startRun(classId: string, seed: number, content: RunContent, options: RunOptions = {}): RunState {
   const cls = content.classes[classId];
   if (cls === undefined) throw new Error(`Unknown class id "${classId}"`);
   const rng = new Rng(seed);
   const map = generateMap(content.config, rng);
+  // Drawn after the Act 1 map, so adding targets never changes Act 1 maps.
+  const targetIds = Object.keys(content.targets).sort();
+  const finalTargetId = targetIds[rng.nextInt(Math.max(targetIds.length, 1))] ?? '';
   return {
     classId,
     act: 1,
+    finalTargetId,
+    actStart: null,
     outcome: 'ongoing',
     opsec: cls.maxOpsec,
     maxOpsec: cls.maxOpsec,
@@ -35,6 +46,11 @@ export function startRun(classId: string, seed: number, content: RunContent): Ru
     phase: { kind: 'map' },
     heat: 0,
     fightsStarted: 0,
+    fightsWon: 0,
+    pendingBonusChoices: [],
+    lockedCardIds: [...(options.lockedCardIds ?? [])],
+    peakAlert: 0,
+    bossesBeaten: [],
     seenEventIds: [],
     wipesBought: 0,
     rngState: rng.state,
@@ -67,6 +83,7 @@ function combatStep(state: RunState, action: Parameters<typeof combatReducer>[1]
   if (combat === phase.combat) return state;
 
   const next: RunState = { ...state, phase: { ...phase, combat } };
+  if (combat.alert > next.peakAlert) next.peakAlert = combat.alert;
   if (combat.outcome === 'ongoing') return next;
 
   // The fight is over: copy the run so the follow-up changes stay local.
@@ -74,7 +91,7 @@ function combatStep(state: RunState, action: Parameters<typeof combatReducer>[1]
   const rng = new Rng(run.rngState);
   run.opsec = combat.player.opsec;
   if (combat.outcome === 'won') {
-    finishWonFight(run, phase.lootTable, content, rng);
+    finishWonFight(run, phase.lootTable, phase.encounterId, content, rng);
   } else {
     // Lost, or hit the turn cap. A timed-out fight also burns the run (pending design review).
     run.outcome = 'lost';
@@ -83,23 +100,77 @@ function combatStep(state: RunState, action: Parameters<typeof combatReducer>[1]
   return run;
 }
 
-function finishWonFight(run: RunState, lootTable: 'fight' | 'elite' | 'boss', content: RunContent, rng: Rng): void {
+function finishWonFight(
+  run: RunState,
+  lootTable: 'fight' | 'elite' | 'boss',
+  encounterId: string,
+  content: RunContent,
+  rng: Rng,
+): void {
+  run.fightsWon++;
   for (const toolId of run.tools) {
     const afterWin = content.tools[toolId]?.afterCombatWin;
     if (afterWin !== undefined) applyRunEffects(run, afterWin, content, rng);
   }
 
-  // Milestone 3 runs are Act 1 only, so beating the boss wins the run (Exfiltrated).
   if (lootTable === 'boss') {
-    run.outcome = 'won';
-    run.phase = { kind: 'map' };
-    return;
+    run.bossesBeaten.push(encounterId);
+    // The last act's boss wins the run (Exfiltrated). Earlier bosses give Loot, then the next act starts.
+    if (run.act >= content.config.acts) {
+      run.outcome = 'won';
+      run.phase = { kind: 'map' };
+      return;
+    }
   }
 
   const loot = rollLoot(run, content.config.loot[lootTable], content, rng);
   run.crypto += loot.crypto;
   if (loot.toolId !== null) gainTool(run, loot.toolId, content, rng);
+  run.pendingBonusChoices = rollBonusChoices(run, lootTable, content, rng);
   run.phase = { kind: 'loot', loot };
+}
+
+/** The class passive's bonus pick for this win (the Exploit Dev's), or none. */
+function rollBonusChoices(run: RunState, lootTable: 'fight' | 'elite' | 'boss', content: RunContent, rng: Rng): string[] {
+  const rule = content.classes[run.classId]?.passive?.bonusLoot;
+  if (rule === undefined) return [];
+  const due = run.fightsWon % rule.everyFightsWon === 0 || (rule.afterElite && lootTable === 'elite');
+  if (!due) return [];
+  return rollCardChoices(content, run, rule.rarityWeights, rule.cardChoices, rng);
+}
+
+/**
+ * After a Loot screen is done (picked or skipped): show the bonus pick if one
+ * is waiting, start the next act after a boss, or go back to the map.
+ */
+function finishLoot(run: RunState, content: RunContent, rng: Rng): void {
+  if (run.pendingBonusChoices.length > 0) {
+    run.phase = { kind: 'loot', loot: { crypto: 0, toolId: null, cardChoices: run.pendingBonusChoices, bonus: true } };
+    run.pendingBonusChoices = [];
+    return;
+  }
+  if (run.currentNodeId === run.map.bossId) {
+    startNextAct(run, content, rng);
+    return;
+  }
+  run.phase = { kind: 'map' };
+}
+
+/** OpSec recovered at the start of a new act: a percent of what's missing, rounded down. */
+export function actHealAmount(run: RunState, content: RunContent): number {
+  return Math.floor(((run.maxOpsec - run.opsec) * content.config.actHealPercentOfMissing) / 100);
+}
+
+/** Moves to the next act: recover some OpSec, new map, fresh easy fights. */
+function startNextAct(run: RunState, content: RunContent, rng: Rng): void {
+  const healed = actHealAmount(run, content);
+  healOpsec(run, healed);
+  run.act++;
+  run.map = generateMap(content.config, rng);
+  run.currentNodeId = null;
+  run.fightsStarted = 0;
+  run.actStart = { act: run.act, healed };
+  run.phase = { kind: 'map' };
 }
 
 // ---------------------------------------------------------------------------
@@ -118,13 +189,13 @@ function applyAction(run: RunState, action: Exclude<RunAction, { type: 'COMBAT' 
       const card = phase.loot.cardChoices[action.index];
       if (card === undefined) return false;
       run.deck.push(card);
-      run.phase = { kind: 'map' };
+      finishLoot(run, content, rng);
       return true;
     }
 
     case 'SKIP_LOOT':
       if (phase.kind !== 'loot') return false;
-      run.phase = { kind: 'map' };
+      finishLoot(run, content, rng);
       return true;
 
     case 'EVENT_CHOICE':
@@ -193,6 +264,7 @@ function chooseNode(run: RunState, nodeId: string, content: RunContent, rng: Rng
   const node = run.map.nodes[nodeId];
   if (node === undefined) return false;
   run.currentNodeId = nodeId;
+  run.actStart = null;
   run.phase = enterNode(run, node.kind, content, rng);
   return true;
 }
@@ -214,9 +286,11 @@ function enterNode(run: RunState, kind: NodeKind, content: RunContent, rng: Rng)
   }
 }
 
-/** A random Intel event, preferring ones not seen yet this run. */
+/** A random Intel event for this act, preferring ones not seen yet this run. */
 function pickEvent(run: RunState, content: RunContent, rng: Rng): string {
-  const all = Object.keys(content.events);
+  const all = Object.values(content.events)
+    .filter((event) => event.acts === undefined || event.acts.includes(run.act))
+    .map((event) => event.id);
   const unseen = all.filter((id) => !run.seenEventIds.includes(id));
   const pool = unseen.length > 0 ? unseen : all;
   const eventId = pool[rng.nextInt(Math.max(pool.length, 1))];

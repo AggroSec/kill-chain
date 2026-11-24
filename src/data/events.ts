@@ -81,4 +81,37 @@ export const EVENT_LIST: readonly EventDef[] = [
       { label: 'Walk away.', effects: [] },
     ],
   },
+
+  // --- Acts 2-3 (inside the network) ---
+  {
+    id: 'open-file-share',
+    title: 'Open File Share',
+    text: 'A file share with no permissions set. Years of old documents, and somebody might notice you browsing.',
+    acts: [2, 3],
+    choices: [
+      { label: 'Dig through it: pick 1 of 3 class cards. Heat 5 (your next fight starts Noisy).', effects: [{ kind: 'cardChoice', count: 3 }, { kind: 'heat', amount: 5 }] },
+      { label: 'Copy the payroll sheet: +50 Crypto, lose 6 OpSec.', effects: [{ kind: 'gainCrypto', amount: 50 }, { kind: 'loseOpsec', amount: 6 }] },
+      { label: 'Walk away.', effects: [] },
+    ],
+  },
+  {
+    id: 'help-desk-ticket',
+    title: 'Help Desk Ticket',
+    text: 'An open ticket sits in the queue, assigned to nobody. Closing it would make you look like you belong here.',
+    acts: [2, 3],
+    choices: [
+      { label: 'Work the ticket: recover 20 OpSec.', effects: [{ kind: 'healOpsec', amount: 20 }] },
+      { label: 'Escalate it to yourself: lose 10 OpSec, gain a random Tool.', effects: [{ kind: 'loseOpsec', amount: 10 }, { kind: 'gainRandomTool' }] },
+    ],
+  },
+  {
+    id: 'maintenance-window',
+    title: 'Maintenance Window',
+    text: "Scheduled maintenance. The defenders are busy and nobody is watching the change log.",
+    acts: [3],
+    choices: [
+      { label: 'Sneak in changes: upgrade 2 random cards to v2.', effects: [{ kind: 'upgradeRandomCard' }, { kind: 'upgradeRandomCard' }] },
+      { label: 'Rest while they work: recover 25 OpSec.', effects: [{ kind: 'healOpsec', amount: 25 }] },
+    ],
+  },
 ];

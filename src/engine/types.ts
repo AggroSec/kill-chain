@@ -6,7 +6,7 @@
  * Static content types (cards, enemies, statuses) live in contentTypes.ts.
  */
 export * from './contentTypes';
-import type { CardEffect } from './contentTypes';
+import type { CardEffect, Tactic } from './contentTypes';
 
 /**
  * A physical copy of a card in the Arsenal. Two copies of the same card
@@ -74,6 +74,10 @@ export interface CombatState {
   enemies: EnemyState[];
   /** Noisy cards raise Alert by this much less, minimum 0 (from Tools like Proxy Chain). */
   noisyReduction: number;
+  /** Extra damage the Operator takes from every enemy hit (the Insider is fragile). */
+  damageTakenPerHit: number;
+  /** Tactic index each turn's Chain starts from, or null (see emptyChain). */
+  chainStartIndex: number | null;
   /** Seeded RNG state. All randomness reads and advances this. */
   rngState: number;
 }
@@ -103,6 +107,10 @@ export interface CombatModifiers {
   firstTurnCycles?: number;
   /** Effects that resolve once at the start of the fight, after the opening draw. No picked target. */
   combatStart?: readonly CardEffect[];
+  /** Extra damage taken from every enemy hit. */
+  damageTakenPerHit?: number;
+  /** Each turn's Chain starts as if a card of this tactic was already played. */
+  chainStartTactic?: Tactic;
 }
 
 export type CombatAction =

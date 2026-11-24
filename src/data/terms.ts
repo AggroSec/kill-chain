@@ -33,6 +33,7 @@ export const TERMS = {
   turnCap: 'Timed Out',
   stalled: 'Stalled',
   allEnemies: 'ALL enemies',
+  randomEnemy: 'a random enemy',
 
   // --- Run loop (Milestone 3) ---
   crypto: 'Crypto',

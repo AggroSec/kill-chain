@@ -8,25 +8,36 @@ import { DEFAULT_MAX_CYCLES } from '../rules';
 import type { CardEffect, CombatModifiers } from '../types';
 import type { EncounterDef, RunContent, RunPhase, RunState } from './runTypes';
 
-/** Adds up every Tool's fight bonuses, plus Heat as starting Alert. */
+/**
+ * Adds up the class passive's and every Tool's fight bonuses, plus Heat as starting Alert.
+ * The class passive comes first, so its start-of-fight effects resolve before Tools'.
+ */
 export function combatModifiers(run: RunState, content: RunContent): CombatModifiers {
-  const total = { startingAlert: run.heat, noisyReduction: 0, firstTurnDraw: 0, firstTurnCycles: 0 };
+  const total = { startingAlert: run.heat, noisyReduction: 0, firstTurnDraw: 0, firstTurnCycles: 0, damageTakenPerHit: 0 };
   const combatStart: CardEffect[] = [];
-  for (const toolId of run.tools) {
-    const bonus = content.tools[toolId]?.combat;
+  const classBonus = content.classes[run.classId]?.passive?.combat;
+  const bonuses = [classBonus, ...run.tools.map((toolId) => content.tools[toolId]?.combat)];
+  for (const bonus of bonuses) {
     if (bonus === undefined) continue;
     total.startingAlert += bonus.startingAlert ?? 0;
     total.noisyReduction += bonus.noisyReduction ?? 0;
     total.firstTurnDraw += bonus.firstTurnDraw ?? 0;
     total.firstTurnCycles += bonus.firstTurnCycles ?? 0;
+    total.damageTakenPerHit += bonus.damageTakenPerHit ?? 0;
     combatStart.push(...(bonus.combatStart ?? []));
   }
-  return { ...total, combatStart };
+  const chainStartTactic = classBonus?.chainStartTactic;
+  return { ...total, combatStart, ...(chainStartTactic === undefined ? {} : { chainStartTactic }) };
 }
 
-/** A random encounter of this tier for the run's current act. */
+/**
+ * A random encounter of this tier for the run's current act. Encounters that
+ * belong to a Final Target only show up in runs that drew that target.
+ */
 export function pickEncounter(run: RunState, tier: EncounterDef['tier'], content: RunContent, rng: Rng): EncounterDef {
-  const pool = Object.values(content.encounters).filter((e) => e.act === run.act && e.tier === tier);
+  const pool = Object.values(content.encounters).filter(
+    (e) => e.act === run.act && e.tier === tier && (e.target === undefined || e.target === run.finalTargetId),
+  );
   const picked = pool[rng.nextInt(Math.max(pool.length, 1))];
   if (picked === undefined) throw new Error(`No act ${run.act} encounters with tier "${tier}"`);
   return picked;
@@ -46,7 +57,7 @@ export function startRunCombat(
       deck: run.deck,
       opsec: run.opsec,
       maxOpsec: run.maxOpsec,
-      maxCycles: DEFAULT_MAX_CYCLES,
+      maxCycles: content.classes[run.classId]?.maxCycles ?? DEFAULT_MAX_CYCLES,
       enemies: encounter.enemies,
       modifiers: combatModifiers(run, content),
     },

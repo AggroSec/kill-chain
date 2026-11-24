@@ -27,7 +27,9 @@ export function previewIntent(state: CombatState, enemyIndex: number, content: C
     moveName: move.name,
     stalled: getStacks(enemy.statuses, CORE_STATUS.stalled) > 0,
     effects: move.effects.map((effect) =>
-      effect.kind === 'attack' ? { ...effect, damage: enemyHitDamage(effect.damage, enemy.statuses, state.alert) } : effect,
+      effect.kind === 'attack'
+        ? { ...effect, damage: enemyHitDamage(effect.damage, enemy.statuses, state.alert, state.player.statuses, state.damageTakenPerHit) }
+        : effect,
     ),
   };
 }

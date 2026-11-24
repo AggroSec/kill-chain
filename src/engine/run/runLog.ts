@@ -15,7 +15,11 @@
  *   class: exploit-dev
  *   seed: 123456
  *   result: lost on floor 12
+ *   locked: card-a card-b
  *   actions: n:1-2 p0.0 p1.0 e ...
+ *
+ * "locked" lists the cards the player hadn't unlocked yet (they change
+ * what Loot can offer). It's left out when nothing is locked.
  *
  * Each action is one short token (see encodeAction). A save from before
  * logging existed has no action list; its log carries the final run state
@@ -33,6 +37,8 @@ export interface RunLog {
   seed: number;
   /** Free text written when the log was exported, e.g. "lost on floor 12". */
   result: string;
+  /** Cards that were still locked for this run (see RunOptions). */
+  lockedCardIds?: readonly string[];
   /** null when the run was saved before logging existed. */
   actions: RunAction[] | null;
   /** Only for logs without actions: the last saved state. */
@@ -123,6 +129,7 @@ export function decodeAction(token: string): RunAction {
 
 export function formatRunLog(log: RunLog): string {
   const lines = [RUN_LOG_HEADER, `build: ${log.build}`, `class: ${log.classId}`, `seed: ${log.seed}`, `result: ${log.result}`];
+  if (log.lockedCardIds !== undefined && log.lockedCardIds.length > 0) lines.push(`locked: ${log.lockedCardIds.join(' ')}`);
   if (log.actions !== null) {
     lines.push(`actions: ${log.actions.map(encodeAction).join(' ')}`);
   } else {
@@ -165,6 +172,8 @@ export function parseRunLog(text: string): RunLog {
     result: fields.get('result') ?? '',
     actions: recorded ? actionText.split(/\s+/).filter((t) => t !== '').map(decodeAction) : null,
   };
+  const locked = fields.get('locked');
+  if (locked !== undefined) log.lockedCardIds = locked.split(/\s+/).filter((id) => id !== '');
   const state = fields.get('state');
   if (state !== undefined) log.state = JSON.parse(state) as RunState;
   return log;
@@ -185,7 +194,7 @@ export interface ReplayStep {
  * every later action would be applied to the wrong state.
  */
 export function replayRun(log: RunLog, content: RunContent): { start: RunState; steps: ReplayStep[]; final: RunState } {
-  const start = startRun(log.classId, log.seed, content);
+  const start = startRun(log.classId, log.seed, content, { lockedCardIds: log.lockedCardIds ?? [] });
   const steps: ReplayStep[] = [];
   let state = start;
   for (const [index, action] of (log.actions ?? []).entries()) {

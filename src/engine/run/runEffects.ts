@@ -78,7 +78,7 @@ function tradeUpCard(run: RunState, deckIndex: number, content: RunContent, rng:
   const cardId = run.deck[deckIndex];
   if (cardId === undefined) return;
   const rarity = content.cards[baseCardId(cardId)]?.rarity ?? 'starter';
-  const replacement = rollCard(content, run.classId, NEXT_RARITY[rarity], rng);
+  const replacement = rollCard(content, run, NEXT_RARITY[rarity], rng);
   if (replacement === null) return;
   run.deck.splice(deckIndex, 1, replacement);
 }
@@ -113,12 +113,12 @@ export function applyRunEffects(
         run.opsec += effect.amount;
         break;
       case 'gainRandomCard': {
-        const card = rollCard(content, run.classId, effect.rarity, rng);
+        const card = rollCard(content, run, effect.rarity, rng);
         if (card !== null) run.deck.push(card);
         break;
       }
       case 'cardChoice': {
-        const choices = rollCardChoices(content, run.classId, content.config.loot.fight.rarityWeights, effect.count, rng);
+        const choices = rollCardChoices(content, run, content.config.loot.fight.rarityWeights, effect.count, rng);
         nextPhase = { kind: 'loot', loot: { crypto: 0, toolId: null, cardChoices: choices } };
         break;
       }

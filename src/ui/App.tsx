@@ -77,7 +77,7 @@ export function App() {
   const [screen, setScreen] = useState<Screen>(screenFromUrl);
   const [classId, setClassId] = useState(CLASS_LIST[0]?.id ?? '');
   const [encounterId, setEncounterId] = useState(ENCOUNTER_LIST[0]?.id ?? '');
-  const [savedRun, setSavedRun] = useState<SavedRun | null>(loadRun);
+  const [savedRun, setSavedRun] = useState<SavedRun | null>(() => loadRun(CONTENT));
   const [settings, setSettings] = useState<Settings>(loadSettings);
   /** The in-game menu is open on top of a run or practice fight. */
   const [paused, setPaused] = useState(false);

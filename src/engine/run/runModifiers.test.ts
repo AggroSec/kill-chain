@@ -41,6 +41,7 @@ describe('Tool fight bonuses', () => {
       noisyReduction: 2,
       firstTurnDraw: 2,
       firstTurnCycles: 0,
+      damageTakenPerHit: 0,
       combatStart: [
         { kind: 'damage', amount: 3, target: 'allEnemies' },
         { kind: 'damage', amount: 3, target: 'allEnemies' },

@@ -94,4 +94,37 @@ export const STATUS_LIST: readonly StatusDef[] = [
       { kind: 'block', amount: 4 },
     ],
   },
+  {
+    id: 'scheduled-transfer',
+    name: 'Scheduled Transfer',
+    description: 'Implant. At the start of your turn, draw 1 card.',
+    kind: 'buff',
+    decay: 'never',
+    implant: true,
+    onTurnStart: [{ kind: 'draw', count: 1 }],
+  },
+  {
+    id: 'forwarding-rule',
+    name: 'Forwarding Rule',
+    description: 'Implant. At the start of your turn, apply 1 Exposed to ALL enemies and gain 2 Block.',
+    kind: 'buff',
+    decay: 'never',
+    implant: true,
+    onTurnStart: [
+      { kind: 'applyStatus', status: 'exposed', stacks: 1, target: 'allEnemies' },
+      { kind: 'block', amount: 2 },
+    ],
+  },
+  {
+    id: 'sock-puppet',
+    name: 'Sock Puppet',
+    description: 'Implant. At the start of your turn, gain 3 Block and apply 1 Throttled to a random enemy.',
+    kind: 'buff',
+    decay: 'never',
+    implant: true,
+    onTurnStart: [
+      { kind: 'block', amount: 3 },
+      { kind: 'applyStatus', status: 'throttled', stacks: 1, target: 'randomEnemy' },
+    ],
+  },
 ];

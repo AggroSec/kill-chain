@@ -12,7 +12,7 @@
  */
 import { clampAlert } from './alert';
 import { cloneCombatState } from './clone';
-import { advanceChain, emptyChain } from './chain';
+import { advanceChain, emptyChain, tacticIndex } from './chain';
 import { discardHand, drawCards } from './deck';
 import { effectsNeedTarget, isEnemyAlive, resolveCardEffects } from './effects';
 import type { EffectContext } from './effects';
@@ -73,16 +73,17 @@ export function startCombat(setup: CombatSetup, seed: number, content: ContentRe
       lastMoveId: null,
       timesInARow: 0,
     };
-    enemy.intentMoveId = chooseNextMove(enemy, def, rng);
+    enemy.intentMoveId = chooseNextMove(enemy, def, rng, 0);
     return enemy;
   });
 
   const modifiers = setup.modifiers ?? {};
+  const chainStartIndex = modifiers.chainStartTactic === undefined ? null : tacticIndex(modifiers.chainStartTactic);
   const state: CombatState = {
     turn: 1,
     outcome: 'ongoing',
     alert: clampAlert(0, modifiers.startingAlert ?? 0),
-    chain: emptyChain(),
+    chain: emptyChain(chainStartIndex),
     player: {
       opsec: setup.opsec,
       maxOpsec: setup.maxOpsec,
@@ -97,6 +98,8 @@ export function startCombat(setup: CombatSetup, seed: number, content: ContentRe
     },
     enemies,
     noisyReduction: modifiers.noisyReduction ?? 0,
+    damageTakenPerHit: modifiers.damageTakenPerHit ?? 0,
+    chainStartIndex,
     rngState: 0,
   };
 
@@ -227,7 +230,7 @@ function startPlayerTurn(state: CombatState, rng: Rng, content: ContentRegistry)
   const player = state.player;
   player.block = 0;
   player.cycles = player.maxCycles;
-  state.chain = emptyChain();
+  state.chain = emptyChain(state.chainStartIndex);
 
   // Implants (and any other turn-start statuses) fire once per stack.
   const ctx: EffectContext = { state, rng, content, targetIndex: -1, hitEnemies: new Set() };

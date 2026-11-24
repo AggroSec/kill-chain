@@ -3,12 +3,14 @@
  * encounter pools and the run config. Also a smoke test that full runs finish.
  */
 import { describe, expect, it } from 'vitest';
-import { classCardPool, isUpgraded, upgradedId } from '../engine';
+import { classCardPool, emptyProfile, isUpgraded, lockedCardIds, upgradedId } from '../engine';
 import { RUN_BOTS, playRun } from '../sim/runSim';
 import { CARD_LIST } from './cards';
 import { CLASS_LIST } from './classes';
 import { CONTENT } from './content';
+import { ENCOUNTER_LIST } from './encounters';
 import { EVENT_LIST } from './events';
+import { PROGRESSION } from './progression';
 import { RUN_CONFIG } from './runConfig';
 import { TOOL_LIST } from './tools';
 
@@ -30,10 +32,77 @@ describe('v2 upgrades', () => {
 });
 
 describe('class pools', () => {
-  it.each(CLASS_LIST.map((cls) => [cls.id] as const))('%s has a 20-card Loot pool with every Loot rarity', (classId) => {
-    expect(classCardPool(CONTENT, classId)).toHaveLength(20);
-    const rarities = new Set(classCardPool(CONTENT, classId).map((card) => card.rarity));
+  const locked = lockedCardIds(emptyProfile(), PROGRESSION);
+
+  it.each(CLASS_LIST.map((cls) => [cls.id] as const))('%s starts with a 20-card Loot pool with every Loot rarity', (classId) => {
+    const pool = classCardPool(CONTENT, classId, locked);
+    expect(pool).toHaveLength(20);
+    const rarities = new Set(pool.map((card) => card.rarity));
     expect([...rarities].sort()).toEqual(['private', 'public', 'zero-day']);
+  });
+
+  it.each(CLASS_LIST.map((cls) => [cls.id] as const))('%s unlocks 2 cards per level for 3 levels, plus 1 Bounty card', (classId) => {
+    const levels = PROGRESSION.classLevels[classId] ?? [];
+    expect(levels.map((l) => l.level)).toEqual([1, 2, 3]);
+    const levelCards = levels.flatMap((l) => l.unlocks.flatMap((u) => (u.kind === 'card' ? [u.cardId] : [])));
+    expect(levelCards).toHaveLength(6);
+    const unlockedPool = classCardPool(CONTENT, classId, []);
+    expect(unlockedPool).toHaveLength(27);
+  });
+});
+
+describe('progression data', () => {
+  it('every unlockable card exists, is a base card and is locked on a fresh profile', () => {
+    const all = [...Object.values(PROGRESSION.classLevels).flat(), ...PROGRESSION.bounties].flatMap((d) => d.unlocks);
+    for (const unlock of all) {
+      if (unlock.kind === 'card') expect(CONTENT.cards[unlock.cardId], unlock.cardId).toBeDefined();
+      if (unlock.kind === 'class') expect(CONTENT.classes[unlock.classId], unlock.classId).toBeDefined();
+    }
+    for (const id of lockedCardIds(emptyProfile(), PROGRESSION)) expect(isUpgraded(id)).toBe(false);
+  });
+
+  it('a class level only unlocks that class\'s cards', () => {
+    for (const [classId, levels] of Object.entries(PROGRESSION.classLevels)) {
+      for (const unlock of levels.flatMap((l) => l.unlocks)) {
+        if (unlock.kind === 'card') expect(CONTENT.cards[unlock.cardId]?.owner, unlock.cardId).toBe(classId);
+      }
+    }
+  });
+
+  it('Bounty bosses are real boss encounters, and the Insider is unlocked by a Bounty', () => {
+    for (const bounty of PROGRESSION.bounties) {
+      if (bounty.condition.kind === 'beatBoss') {
+        const id = bounty.condition.encounterId;
+        expect(ENCOUNTER_LIST.find((e) => e.id === id)?.tier, id).toBe('boss');
+      }
+    }
+    expect(PROGRESSION.startingClasses).not.toContain('insider');
+    expect(PROGRESSION.bounties.some((b) => b.unlocks.some((u) => u.kind === 'class' && u.classId === 'insider'))).toBe(true);
+  });
+});
+
+describe('acts and Final Targets', () => {
+  it('every act has easy, normal, elite and boss encounters (per Final Target in the last act)', () => {
+    const tiers = ['easy', 'normal', 'elite', 'boss'] as const;
+    for (let act = 1; act < RUN_CONFIG.acts; act++) {
+      for (const tier of tiers) expect(ENCOUNTER_LIST.some((e) => e.act === act && e.tier === tier && e.target === undefined), `act ${act} ${tier}`).toBe(true);
+    }
+    for (const target of Object.keys(CONTENT.targets)) {
+      for (const tier of tiers) {
+        expect(ENCOUNTER_LIST.some((e) => e.act === RUN_CONFIG.acts && e.tier === tier && e.target === target), `${target} ${tier}`).toBe(true);
+      }
+    }
+  });
+
+  it('only last-act encounters name a Final Target, and it exists', () => {
+    for (const e of ENCOUNTER_LIST) {
+      if (e.target !== undefined) {
+        expect(e.act, e.id).toBe(RUN_CONFIG.acts);
+        expect(CONTENT.targets[e.target], e.id).toBeDefined();
+      } else {
+        expect(e.act, e.id).toBeLessThan(RUN_CONFIG.acts);
+      }
+    }
   });
 });
 

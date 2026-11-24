@@ -37,6 +37,17 @@ function pickedTarget(ctx: EffectContext): number[] {
   return enemy !== undefined && isEnemyAlive(enemy) ? [ctx.targetIndex] : [];
 }
 
+/** Enemy indexes a status effect lands on. */
+function statusTargets(ctx: EffectContext, target: 'target' | 'allEnemies' | 'randomEnemy'): number[] {
+  if (target === 'allEnemies') return livingEnemyIndexes(ctx.state);
+  if (target === 'randomEnemy') {
+    const living = livingEnemyIndexes(ctx.state);
+    const pick = living[ctx.rng.nextInt(Math.max(living.length, 1))];
+    return pick === undefined ? [] : [pick];
+  }
+  return pickedTarget(ctx);
+}
+
 /** Applies one hit of already-calculated damage to an enemy (block first). */
 function hitEnemy(ctx: EffectContext, enemyIndex: number, damage: number): void {
   const enemy = ctx.state.enemies[enemyIndex];
@@ -83,7 +94,7 @@ function resolveCardEffect(ctx: EffectContext, effect: CardEffect): void {
         for (const index of targets) {
           const enemy = state.enemies[index];
           if (enemy === undefined) continue;
-          const damage = operatorHitDamage(effect.amount, state.chain.count, effect.bonusPerChain ?? 0, enemy.statuses);
+          const damage = operatorHitDamage(effect.amount, state.chain.count, effect.bonusPerChain ?? 0, enemy.statuses, player.statuses);
           hitEnemy(ctx, index, damage);
         }
       }
@@ -113,8 +124,7 @@ function resolveCardEffect(ctx: EffectContext, effect: CardEffect): void {
         addStacks(player.statuses, effect.status, effect.stacks);
         return;
       }
-      const targets = effect.target === 'allEnemies' ? livingEnemyIndexes(state) : pickedTarget(ctx);
-      for (const index of targets) {
+      for (const index of statusTargets(ctx, effect.target)) {
         const enemy = state.enemies[index];
         if (enemy !== undefined) addStacks(enemy.statuses, effect.status, effect.stacks);
       }
@@ -129,7 +139,7 @@ function resolveCardEffect(ctx: EffectContext, effect: CardEffect): void {
         const stacks = getStacks(enemy.statuses, CORE_STATUS.vuln);
         if (stacks === 0) continue;
         addStacks(enemy.statuses, CORE_STATUS.vuln, -stacks);
-        const damage = operatorHitDamage(stacks * effect.damagePerStack, state.chain.count, 0, enemy.statuses);
+        const damage = operatorHitDamage(stacks * effect.damagePerStack, state.chain.count, 0, enemy.statuses, player.statuses);
         hitEnemy(ctx, index, damage);
       }
       return;

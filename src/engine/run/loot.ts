@@ -20,12 +20,15 @@ export function rollRarity(weights: Readonly<Record<LootRarity, number>>, rng: R
   return LOOT_RARITIES[index] ?? 'public';
 }
 
-/** Base (not upgraded), non-starter cards the class can find. */
-export function classCardPool(content: RunContent, classId: string): CardDef[] {
+/** Base (not upgraded), non-starter cards the class can find, minus cards that are still locked. */
+export function classCardPool(content: RunContent, classId: string, lockedCardIds: readonly string[] = []): CardDef[] {
   return Object.values(content.cards).filter(
-    (card) => card.owner === classId && card.rarity !== 'starter' && !isUpgraded(card.id),
+    (card) => card.owner === classId && card.rarity !== 'starter' && !isUpgraded(card.id) && !lockedCardIds.includes(card.id),
   );
 }
+
+/** Who is looking for cards: the run's class and its locked cards. */
+type CardSeeker = Pick<RunState, 'classId' | 'lockedCardIds'>;
 
 /**
  * One random card of the rolled rarity, skipping ids in `exclude`.
@@ -33,12 +36,12 @@ export function classCardPool(content: RunContent, classId: string): CardDef[] {
  */
 export function rollCard(
   content: RunContent,
-  classId: string,
+  seeker: CardSeeker,
   rarity: LootRarity,
   rng: Rng,
   exclude: readonly string[] = [],
 ): string | null {
-  const pool = classCardPool(content, classId).filter((card) => !exclude.includes(card.id));
+  const pool = classCardPool(content, seeker.classId, seeker.lockedCardIds).filter((card) => !exclude.includes(card.id));
   const ofRarity = pool.filter((card) => card.rarity === rarity);
   const candidates = ofRarity.length > 0 ? ofRarity : pool;
   if (candidates.length === 0) return null;
@@ -48,14 +51,14 @@ export function rollCard(
 /** `count` different cards, each with its own rarity roll. */
 export function rollCardChoices(
   content: RunContent,
-  classId: string,
+  seeker: CardSeeker,
   weights: Readonly<Record<LootRarity, number>>,
   count: number,
   rng: Rng,
 ): string[] {
   const choices: string[] = [];
   for (let i = 0; i < count; i++) {
-    const card = rollCard(content, classId, rollRarity(weights, rng), rng, choices);
+    const card = rollCard(content, seeker, rollRarity(weights, rng), rng, choices);
     if (card !== null) choices.push(card);
   }
   return choices;
@@ -76,7 +79,7 @@ export function rollLoot(
   rng: Rng,
 ): { cardChoices: string[]; crypto: number; toolId: string | null } {
   return {
-    cardChoices: rollCardChoices(content, run.classId, table.rarityWeights, table.cardChoices, rng),
+    cardChoices: rollCardChoices(content, run, table.rarityWeights, table.cardChoices, rng),
     crypto: rollRange(table.crypto, rng),
     toolId: table.tool ? rollTool(content, run.tools, rng) : null,
   };
@@ -98,7 +101,7 @@ export function rollDarkWebStock(run: RunState, content: RunContent, rng: Rng): 
   const cards: ShopItem[] = [];
   for (let i = 0; i < shop.cardCount; i++) {
     const rarity = rollRarity(content.config.loot.fight.rarityWeights, rng);
-    const id = rollCard(content, run.classId, rarity, rng, cards.map((c) => c.id));
+    const id = rollCard(content, run, rarity, rng, cards.map((c) => c.id));
     if (id === null) break;
     const actualRarity = content.cards[id]?.rarity;
     const priceRange = actualRarity !== undefined && actualRarity !== 'starter' ? shop.cardPrice[actualRarity] : shop.cardPrice.public;

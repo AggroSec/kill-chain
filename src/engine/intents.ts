@@ -1,6 +1,7 @@
 /**
  * Enemy intent selection: picks each enemy's next move with the seeded RNG.
  */
+import { isAlertInRange } from './alert';
 import type { Rng } from './rng';
 import type { EnemyDef, EnemyMove, EnemyState } from './types';
 
@@ -13,9 +14,14 @@ function wouldExceedRepeatLimit(enemy: EnemyState, move: EnemyMove): boolean {
   return enemy.lastMoveId === move.id && enemy.timesInARow >= move.maxInARow;
 }
 
-/** Chooses the enemy's next move id using weights and repeat limits. */
-export function chooseNextMove(enemy: EnemyState, def: EnemyDef, rng: Rng): string {
-  let candidates = def.moves.filter((move) => !wouldExceedRepeatLimit(enemy, move) && move.weight > 0);
+/** Is the move allowed at this Alert? (Moves without `whenAlert` always are.) */
+function alertAllows(move: EnemyMove, alert: number): boolean {
+  return move.whenAlert === undefined || isAlertInRange(alert, move.whenAlert.atLeast, move.whenAlert.atMost);
+}
+
+/** Chooses the enemy's next move id using weights, repeat limits and Alert conditions. */
+export function chooseNextMove(enemy: EnemyState, def: EnemyDef, rng: Rng, alert: number): string {
+  let candidates = def.moves.filter((move) => !wouldExceedRepeatLimit(enemy, move) && move.weight > 0 && alertAllows(move, alert));
   // Safety net: if data is set up so every move is blocked, allow any move.
   if (candidates.length === 0) candidates = [...def.moves];
 

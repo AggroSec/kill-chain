@@ -8,7 +8,8 @@
  *                    ├─▶ intel (event) ──▶ map, combat or loot
  *                    ├─▶ safehouse ──▶ map
  *                    └─▶ darkWeb ──▶ map
- *   boss win ──▶ outcome "won" (Exfiltrated).  OpSec 0 ──▶ outcome "lost" (Burned).
+ *   boss win ──▶ boss Loot ──▶ next act's map (Acts 1-2)
+ *   last act's boss win ──▶ outcome "won" (Exfiltrated).  OpSec 0 ──▶ outcome "lost" (Burned).
  */
 import type { CombatAction, CombatModifiers, CombatState, ContentRegistry, Rarity } from '../types';
 
@@ -79,13 +80,48 @@ export type LootRarity = Exclude<Rarity, 'starter'>;
 export interface RunClassDef {
   id: string;
   maxOpsec: number;
+  /** Cycles per turn. Defaults to DEFAULT_MAX_CYCLES (3). */
+  maxCycles?: number;
   /** Card ids, duplicates allowed. */
   starterDeck: readonly string[];
+  /** The class's unique passive ability. */
+  passive?: ClassPassive;
+}
+
+/** A class passive, as data. Every part is optional. */
+export interface ClassPassive {
+  /** Applied to every fight (added to Tool bonuses). */
+  combat?: CombatModifiers;
+  /** Extra Loot picks (the Exploit Dev's). */
+  bonusLoot?: BonusLootRule;
+}
+
+/**
+ * A second "pick 1 of N" after some fights.
+ * Fires after every `everyFightsWon`-th fight won, and after every Hardened Target if `afterElite`.
+ */
+export interface BonusLootRule {
+  everyFightsWon: number;
+  afterElite: boolean;
+  rarityWeights: Readonly<Record<LootRarity, number>>;
+  cardChoices: number;
+}
+
+/** A Final Target for Act 3 (OT Facility, Cloud Tenant...). Its enemies are encounters with `target` set. */
+export interface TargetDef {
+  id: string;
+  name: string;
+  /** One or two sentences shown when the target is drawn. */
+  description: string;
+  /** Name of the boss, shown up front so the Arsenal can be planned around it. */
+  bossName: string;
 }
 
 export interface EncounterDef {
   id: string;
   act: number;
+  /** For the Final Target act: which target this encounter belongs to. */
+  target?: string;
   /** easy: first fights of an act. normal: the rest. elite: Hardened Targets. boss: end of act. */
   tier: 'easy' | 'normal' | 'elite' | 'boss';
   /** Enemy ids, left to right. */
@@ -120,6 +156,8 @@ export interface EventDef {
   title: string;
   text: string;
   choices: readonly EventChoice[];
+  /** Acts the event can appear in. Omit for every act. */
+  acts?: readonly number[];
 }
 
 /** One Loot table (normal fight, Hardened Target, boss). */
@@ -134,6 +172,10 @@ export interface LootTable {
 
 /** All the numbers that shape a run. Lives in src/data so it can be tuned as data. */
 export interface RunConfig {
+  /** Acts in a full run. The last one is the Final Target. */
+  acts: number;
+  /** At the start of each act after the first, recover this percent of missing OpSec (rounded down). */
+  actHealPercentOfMissing: number;
   floors: number;
   lanes: number;
   /** How many paths the map generator draws from floor 1 to the last floor. */
@@ -146,7 +188,7 @@ export interface RunConfig {
   bannedKinds: readonly { floor: number; kinds: readonly RollableNodeKind[] }[];
   /** Kinds that may not follow themselves directly on a path (e.g. Safehouse → Safehouse). */
   noBackToBack: readonly RollableNodeKind[];
-  /** The first N regular fights of a run use the easy encounter pool. */
+  /** The first N regular fights of each act use the easy encounter pool. */
   easyFightCount: number;
   /** Wipe and Go Dark can't shrink the Arsenal below this many cards. */
   minArsenalSize: number;
@@ -175,6 +217,7 @@ export interface RunContent extends ContentRegistry {
   encounters: Readonly<Record<string, EncounterDef>>;
   tools: Readonly<Record<string, ToolDef>>;
   events: Readonly<Record<string, EventDef>>;
+  targets: Readonly<Record<string, TargetDef>>;
   config: RunConfig;
 }
 
@@ -195,6 +238,8 @@ export interface LootOffer {
   toolId: string | null;
   /** Pick 1 of these, or skip. Empty once picked or skipped. */
   cardChoices: string[];
+  /** True for a class passive's bonus pick (shown after the normal Loot). */
+  bonus?: boolean;
 }
 
 export type RunPhase =
@@ -209,8 +254,12 @@ export type RunOutcome = 'ongoing' | 'won' | 'lost';
 
 export interface RunState {
   classId: string;
-  /** Current act (1-3). Milestone 3 runs are Act 1 only. */
+  /** Current act, 1 to config.acts. */
   act: number;
+  /** The Final Target drawn at the start of the run (Act 3). */
+  finalTargetId: string;
+  /** Set when a new act starts, until the first node is chosen (the UI shows the act intro). */
+  actStart: { act: number; healed: number } | null;
   outcome: RunOutcome;
   opsec: number;
   maxOpsec: number;
@@ -224,8 +273,18 @@ export interface RunState {
   phase: RunPhase;
   /** Heat: extra Alert the next fight starts with. Resets to 0 when that fight starts. */
   heat: number;
-  /** Regular fights started so far (for the easy-fight rule). */
+  /** Regular fights started this act (for the easy-fight rule). */
   fightsStarted: number;
+  /** Fights won this run, of any kind (for the Exploit Dev's bonus pick). */
+  fightsWon: number;
+  /** A class passive's bonus pick, waiting for the normal Loot to finish. */
+  pendingBonusChoices: string[];
+  /** Cards the player hasn't unlocked yet: never offered as Loot, at the Dark Web or by Intel. */
+  lockedCardIds: string[];
+  /** Highest Alert reached in any fight this run (for Bounties). */
+  peakAlert: number;
+  /** Boss encounters beaten this run, in order (for Bounties). */
+  bossesBeaten: string[];
   /** Intel events already seen this run (they don't repeat until all are used). */
   seenEventIds: string[];
   /** Wipes bought at the Dark Web this run (raises the price). */

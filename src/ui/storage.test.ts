@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseRunLog, runReducer, startRun } from '../engine';
 import { CONTENT } from '../data/content';
-import { resultText, runLogText } from './storage';
+import { resultText, runLogText, upgradeSavedRun } from './storage';
 
 describe('run log export', () => {
   it('records actions and reads OpSec from the fight in progress', () => {
@@ -20,5 +20,18 @@ describe('run log export', () => {
     const text = runLogText({ seed: 4, run });
     expect(parseRunLog(text).state).toEqual(run);
     expect(text.length).toBeLessThan(60_000);
+  });
+});
+
+describe('old saves', () => {
+  it('an Act 1 save from before Milestone 5 gets the new fields and keeps its progress', () => {
+    const current = startRun('exploit-dev', 8, CONTENT);
+    const old: Partial<typeof current> & { classId: string } = { ...current, opsec: 33, crypto: 7 };
+    for (const key of ['finalTargetId', 'actStart', 'fightsWon', 'pendingBonusChoices', 'lockedCardIds', 'peakAlert', 'bossesBeaten'] as const) {
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete -- simulating an old save
+      delete old[key];
+    }
+    const upgraded = upgradeSavedRun(old, 8, CONTENT);
+    expect(upgraded).toEqual({ ...current, opsec: 33, crypto: 7 });
   });
 });

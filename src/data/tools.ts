@@ -54,4 +54,46 @@ export const TOOL_LIST: readonly ToolDef[] = [
     description: 'Lay Low recovers an extra 15% of max OpSec.',
     layLowBonusPercent: 15,
   },
+
+  // --- Added in Milestone 5 ---
+  {
+    id: 'golden-ticket',
+    name: 'Golden Ticket',
+    description: 'Gain 1 extra Cycle and draw 1 extra card on turn 1 of each fight.',
+    combat: { firstTurnCycles: 1, firstTurnDraw: 1 },
+  },
+  {
+    id: 'jump-box',
+    name: 'Jump Box',
+    description: 'At the start of each fight, gain 8 Block.',
+    combat: { combatStart: [{ kind: 'block', amount: 8 }] },
+  },
+  {
+    id: 'stolen-session-token',
+    name: 'Stolen Session Token',
+    description: 'At the start of each fight, apply 2 Vuln to ALL enemies.',
+    combat: { combatStart: [{ kind: 'applyStatus', status: 'vuln', stacks: 2, target: 'allEnemies' }] },
+  },
+  {
+    id: 'packet-sniffer',
+    name: 'Packet Sniffer',
+    description: 'At the start of each fight, apply 1 Exposed to ALL enemies.',
+    combat: { combatStart: [{ kind: 'applyStatus', status: 'exposed', stacks: 1, target: 'allEnemies' }] },
+  },
+  {
+    id: 'air-gap-bridge',
+    name: 'Air-Gap Bridge',
+    description: 'Recover 3 OpSec and gain 6 Crypto after every fight you win.',
+    afterCombatWin: [
+      { kind: 'healOpsec', amount: 3 },
+      { kind: 'gainCrypto', amount: 6 },
+    ],
+  },
+  {
+    id: 'offline-backup',
+    name: 'Offline Backup',
+    description: 'When picked up: +6 max OpSec. Recover 2 OpSec after every fight you win.',
+    onPickup: [{ kind: 'gainMaxOpsec', amount: 6 }],
+    afterCombatWin: [{ kind: 'healOpsec', amount: 2 }],
+  },
 ];

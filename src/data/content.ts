@@ -13,20 +13,24 @@ import type { ClassDef } from './classes';
 import { ENCOUNTER_LIST } from './encounters';
 import type { EncounterDef } from './encounters';
 import { ENEMY_LIST } from './enemies';
+import { ACT2_ENEMIES } from './enemiesAct2';
+import { CLOUD_ENEMIES, OT_ENEMIES } from './enemiesAct3';
 import { EVENT_LIST } from './events';
 import { RUN_CONFIG } from './runConfig';
 import { STATUS_LIST } from './statuses';
+import { TARGET_LIST } from './targets';
 import { TERMS } from './terms';
 import { TOOL_LIST } from './tools';
 
 export const CONTENT: RunContent = {
   cards: byId(withUpgrades(CARD_LIST, TERMS.upgradedSuffix)),
-  enemies: byId([...ENEMY_LIST, ...BOSS_LIST]),
+  enemies: byId([...ENEMY_LIST, ...BOSS_LIST, ...ACT2_ENEMIES, ...OT_ENEMIES, ...CLOUD_ENEMIES]),
   statuses: byId(STATUS_LIST),
   classes: byId(CLASS_LIST),
   encounters: byId(ENCOUNTER_LIST),
   tools: byId(TOOL_LIST),
   events: byId(EVENT_LIST),
+  targets: byId(TARGET_LIST),
   config: RUN_CONFIG,
 };
 
