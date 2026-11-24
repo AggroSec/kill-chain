@@ -127,3 +127,22 @@ Design choices were made by AggroSec in #17 (hand fan, tap-then-target, enemy ro
 - **The guided fight is a normal fight with a fixed seed and +1 card on turn 1** (an existing Tool modifier), plus a list of tips that advance on game state. A test pins the opening hand and steps through the script, so a content change can't silently break it.
 - **The pause menu opens on top of the game,** so Glossary and Settings never interrupt a fight. Runs autosave after every move, so "Save and quit" just leaves.
 - **Replays now show status changes** (e.g. "Firewall +2 Throttled") instead of "no visible change".
+
+## Milestone 5: Acts 2–3, Final Targets, Insider, class levels and Bounties
+
+The plan and every design choice are AggroSec's (#22). Implementation choices are logged here.
+
+- **Boss Loot between acts.** Beating an Act 1 or 2 boss uses the boss Loot table (2 0-day picks and a Tool), then the next act starts when the Loot screen closes. The OpSec recovery is half of what's *missing*, rounded down, so it never overheals.
+- **The Final Target is drawn after the Act 1 map.** Drawing it first would change every Act 1 map for a given seed whenever a target is added.
+- **The act intro is a pop-up, not a game action.** Closing it is UI state, so it doesn't add tokens to run logs. The engine keeps `actStart` (act and OpSec healed) until the first node is chosen.
+- **Class passives are data.** A passive is combat modifiers (Smooth Talker is a start-of-fight Stall on a random enemy; Trusted Access is a Chain start tactic plus extra damage taken), extra Cycles, and an optional bonus Loot rule. The class passive is added before Tools, so its start-of-fight effects resolve first.
+- **Trusted Access starts each turn's Chain as if Initial Access (step 3) was played.** Chain count stays 0, so the first card of a turn at step 4 or later is the first stack. A step 1–3 card breaks it like any out-of-order card.
+- **The bonus pick comes after normal Loot,** as a second Loot screen. It reuses the pick/skip actions, so the run log format didn't change.
+- **Enemy debuffs on you tick down at the end of your turn,** like your own statuses. One stack applied during the enemy turn lasts through your next turn. Exposed from an add hits harder on the same enemy turn when allies act after it (e.g. Kerberos before the Domain Controller).
+- **Alert-gated enemy moves (`whenAlert`) are checked when the intent is rolled.** The intent shown is always what happens. The OT Facility and Conditional Access use this to react to noise.
+- **Unlockable cards are locked by default.** Everything any level or Bounty unlocks is locked on a fresh profile. The locked list is stored in the run and written to the run log (`locked:` line), since it changes Loot and must replay exactly.
+- **XP is only for finished runs.** An abandoned run gives nothing, so restarting can't farm XP. Rewards are saved with the run, so a refresh on the end screen can't count it twice.
+- **Old saves keep working.** An Act 1 run saved before M5 gets the new fields filled in (and the Final Target its seed would draw). Its log won't replay exactly on the new build.
+- **The simulator plays full 3-act runs with everything unlocked by default** (`--locked` for a fresh profile), and reports how many runs reach each act and win rates per Final Target, both overall and once Act 3 is reached.
+- **Balance changes were card and enemy numbers only.** Insider OpSec, extra damage and Cycles, the passives, XP numbers and Act structure are as AggroSec set them. See BALANCE.md for the reasoning and where the sim still disagrees with the targets.
+

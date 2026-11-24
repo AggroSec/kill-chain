@@ -102,13 +102,13 @@ export const UNLOCKABLE_CARDS: readonly CardDef[] = [
     tactic: 'initial-access',
     cost: 2,
     effects: [
-      { kind: 'damage', amount: 12 },
+      { kind: 'damage', amount: 9 },
       { kind: 'applyStatus', status: 'stalled', stacks: 1, target: 'target' },
     ],
     keywords: { burner: true },
     v2: {
       effects: [
-        { kind: 'damage', amount: 16 },
+        { kind: 'damage', amount: 12 },
         { kind: 'applyStatus', status: 'stalled', stacks: 1, target: 'target' },
       ],
     },
@@ -122,10 +122,11 @@ export const UNLOCKABLE_CARDS: readonly CardDef[] = [
     tactic: 'resource-development',
     cost: 2,
     effects: [
-      { kind: 'damage', amount: 10 },
+      { kind: 'damage', amount: 8 },
       { kind: 'applyStatus', status: 'stalled', stacks: 1, target: 'target' },
-      { kind: 'alert', amount: -2 },
     ],
+    // Burner: a repeatable Stall every reshuffle was the strongest card in the sim.
+    keywords: { burner: true },
     v2: { cost: 1 },
   },
 

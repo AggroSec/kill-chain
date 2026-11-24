@@ -199,17 +199,11 @@ export const INSIDER_CARDS: readonly CardDef[] = [
     rarity: 'public',
     type: 'skill',
     tactic: 'collection',
-    cost: 1,
-    effects: [
-      { kind: 'gainCycles', amount: 1 },
-      { kind: 'draw', count: 1 },
-    ],
-    v2: {
-      effects: [
-        { kind: 'gainCycles', amount: 1 },
-        { kind: 'draw', count: 2 },
-      ],
-    },
+    // Burner: a free draw that refunded its own Cost could loop forever (sim flagged it).
+    cost: 0,
+    effects: [{ kind: 'draw', count: 2 }],
+    keywords: { burner: true },
+    v2: { effects: [{ kind: 'draw', count: 3 }] },
   },
   {
     id: 'exfiltration-over-c2',

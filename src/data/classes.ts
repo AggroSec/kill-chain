@@ -34,7 +34,7 @@ export const CLASS_LIST: readonly ClassDef[] = [
   {
     id: 'exploit-dev',
     name: 'Exploit Dev',
-    tagline: 'Scan for Vuln, then cash it in with devastating Exploits. Loud.',
+    tagline: 'Scan for Vuln, then cash it in with devastating Exploits.',
     maxOpsec: 75,
     starterDeck: [...copies('brute-force', 4), ...copies('obfuscate', 4), 'active-scanning', 'exploit-public-app'],
     passiveName: 'Zero-Day Broker',
